@@ -45,8 +45,8 @@ int main(int argc, char** argv) {
         
  //   }
     
-  //  printf("Initializing CRT process...\n");
-   //  init_crt_process();
+     printf("Initializing CRT process...\n");
+     init_crt_process();
     
 ////    if (retCode == 0 ) {
  //       
@@ -56,13 +56,19 @@ int main(int argc, char** argv) {
     //Setting up clocktick signals
 
      current_process = rpq_dequeue();
+     printf("Current_process pid: %i", current_process->process_id);
              if (current_process == NULL)
              {
                  printf ("Critical error in dequing from RPQ.");
              }
+
              ualarm(10000,10000);
-//     longjmp(*(current_process->context),1);
-    printf("Current process pid: %i: ", current_process->process_id);
+		processP();	
+
+//             longjmp(*(current_process->context),1);
+
+
+
     ualarm(10000, 10000);
     while(1);
     return (EXIT_SUCCESS);

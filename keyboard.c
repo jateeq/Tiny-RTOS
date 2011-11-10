@@ -44,7 +44,6 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	//fid = fopen("mmapfile", O_RDWR);
 	fid = open("mmapfile", O_RDWR);
 	if (fid == -1)
 	{		
@@ -52,7 +51,7 @@ int main(int argc, char* argv[])
 	}
     
 	sscanf(argv[1], "%d", &pid); 
-	//sscanf(argv[2], "%d", &fid); 
+	sscanf(argv[2], "%d", &fid); 
 	
 	printf("pid: %i\n", pid);
 	printf("fid: %i\n", fid); 
@@ -79,10 +78,9 @@ int main(int argc, char* argv[])
 		fflush(fid2);
 		if (kbd_input != '\n')
 		{
-			//if (loop_index < 50)
-			if (loop_index < 2)
+			if (loop_index < BUFFER_SIZE)			
 			{
-				in_mem_ptr->input_data[loop_index] = kbd_input; fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
+				in_mem_ptr->input_data[loop_index] = kbd_input; //fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
 				in_mem_ptr->input_count++; //fprintf(fid2, "input count: %d\n", in_mem_ptr->input_count);
 				loop_index++; //fprintf(fid2, "loop index: %d\n", loop_index);
 			}
@@ -95,18 +93,16 @@ int main(int argc, char* argv[])
 			for (i = 0; i < loop_index; i++) {
 				printf("%c", in_mem_ptr->input_data[i]);
 		    }
-			/*pid_t x = IPROC_KBD;
+			pid_t x = IPROC_KBD;
 			kill(x, SIGUSR1);		
 			loop_index = 0;
 			in_mem_ptr->input_count = 0;
 			while(in_mem_ptr->flag == 1)
 			{
 				usleep(1000);                              
-			}*/
+			}/**/
 		}
-	}while(1);  
-	//}while(loop_index<3);  
-		
+	}while(1);  		
 	return retCode;
 }
 	
