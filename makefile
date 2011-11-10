@@ -36,6 +36,12 @@ build/queue.o : queue.c queue.h
 build/userProcesses.o : userProcesses.c userAPI.c
 	gcc -g -c userProcesses.c
 	
-clean:
-	build/rtx_main.o build/init.o build/iproc.o build/kernelAPI.o build/crt.o build/keyboard.o build/userAPI.o build/queue.o build/userProcesses.o build/rtx_main build/keyboard build/crt 
+#clean:
+#	build/rtx_main.o build/init.o build/iproc.o build/kernelAPI.o build/crt.o build/keyboard.o build/userAPI.o build/queue.o build/userProcesses.o build/rtx_main build/keyboard build/crt 
 
+#clean:
+#	rtx_main.o init.o iproc.o kernelAPI.o crt.o keyboard.o userAPI.o queue.o userProcesses.o rtx_main keyboard crt 
+
+clean:
+	rm -r *.o
+	rm *.exe
