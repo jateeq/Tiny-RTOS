@@ -51,6 +51,9 @@ PCB *rpq_dequeue() {
 }
 
 int msg_enqueue(msg_envelope *msg_env, msg_queue *queue) {
+	fflush(stdout);
+	printf("msg_enqueue invoked\n"); 
+	fflush(stdout);
 	if (queue->size == 0) {
 		msg_env->previous = NULL;
 		msg_env->next = NULL;
@@ -75,10 +78,11 @@ msg_envelope *msg_dequeue(msg_queue *queue) {
 	msg_envelope *temp;
 	temp = queue->tail;
 	if (temp->previous != NULL) {
+		queue->tail = temp->previous; 
+		temp->next = NULL;
 		temp->previous = NULL;
+		queue->tail->next = NULL;
 	}
-
-	queue->tail = NULL;
 	queue->size--;
 	if (queue->size == 0){
 		queue->head = NULL;

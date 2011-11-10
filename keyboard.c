@@ -50,10 +50,6 @@ int main(int argc, char* argv[])
 	in_mem_ptr->flag = 0; /*set ready flag to indicate not ready*/
 	in_mem_ptr->input_count = 0; 
 	loop_index = 0;
-	
-	fflush(stdout);
-	printf("loop_index: %i\n", loop_index);	
-	printf("in_mem input count %i\n", in_mem_ptr->input_count);
 
 	do
 	{
@@ -72,18 +68,17 @@ int main(int argc, char* argv[])
                     in_mem_ptr->flag = 1;                     
 		    printf("Input count: %i\n", in_mem_ptr->input_count);
 		    printf("Loop index : %i\n", loop_index);
-		    printf("Keyboard input was: ");
+		/*printf("Keyboard input was: ");
 		    for (i = 0; i < loop_index; i++) {
 		    printf("%c", in_mem_ptr->input_data[i]);
 		    }
 		    printf("\n");
+		*/
                     loop_index = 0;
-                    in_mem_ptr->input_count = 0;
-		    pid_t x = IPROC_KBD;
-                    kill(x, SIGUSR1);
+                    kill(pid, SIGUSR1);
                 }
-                while(in_mem_ptr->flag == 1)
-                     usleep(1000);                               
+               // while(in_mem_ptr->flag == 1)
+                 //   usleep(1000);                               
 	}while(1); 
 		
 	return retCode;
