@@ -16,7 +16,6 @@
 
 int main(int argc, char* argv[])
 {	
-	printf("Hi");
 	int retCode = 0;/*success*/
 	int pid;
 	int fid; /*parent process id and file id of RX shared map memory*/
@@ -25,11 +24,11 @@ int main(int argc, char* argv[])
 	int loop_index;
 	char kbd_input; //stores the current char entered on keyboard	
 
-	fid = open("mmapfile", O_RDWR);
+	/*fid = open("mmapfile", O_RDWR);
 	if (fid == -1)
 	{
-		printf("Bad file");
-	}	
+		printf("Bad file\n");
+	}*/	
         
 	sscanf(argv[1], "%d", &pid);
 	sscanf(argv[2], "%d", &fid);

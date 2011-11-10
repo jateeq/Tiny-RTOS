@@ -43,7 +43,7 @@ int main (int argc, char * argv[]) {
 	// keyboard interrupt handler
 	
 	mmap_ptr = mmap((caddr_t) 0, buf_size , PROT_READ | PROT_WRITE, MAP_SHARED, fid,(off_t) 0);
-        if (mmap_ptr == MAP_FAILED){
+        if (mmap_ptr == NULL){
             printf("Child memory map has failed, CRT is aborting!\n");
             out_die(0);
         }
