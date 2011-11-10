@@ -153,10 +153,11 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
     msg_envelope->sender_pid = current_process->process_id;
     msg_envelope->receiver_pid = dest_process_id;
     //get sender_id and dest_id and store them into envelope
+    /*
     printf("Message received from sender # ");
     printf("%i",current_process->process_id);
     printf("to receiver # ");
-    printf("%i\n",dest_process_id);
+    printf("%i\n",dest_process_id);*/
 	//store the details of this send transaction on the send_trace_buffer
     
     n=BLOCKED_ON_RECEIVE;
