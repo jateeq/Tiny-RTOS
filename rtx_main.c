@@ -38,15 +38,15 @@ int main(int argc, char** argv) {
     printf("Initializing user and iprocess...\n");
     initialize_process();
     
-    printf("Initializing keyboard process...");
+    printf("Initializing keyboard process...\n");
     init_keyboard_process();
     
  //   if (retCode == 0) {
         
  //   }
     
-     printf("Initializing CRT process...");
-     init_crt_process();
+  //  printf("Initializing CRT process...\n");
+   //  init_crt_process();
     
 ////    if (retCode == 0 ) {
  //       
@@ -61,12 +61,10 @@ int main(int argc, char** argv) {
                  printf ("Critical error in dequing from RPQ.");
              }
              ualarm(10000,10000);
-             longjmp(*(current_process->context),1);
-
-
-
+//     longjmp(*(current_process->context),1);
+    printf("Current process pid: %i: ", current_process->process_id);
     ualarm(10000, 10000);
-    
+    while(1);
     return (EXIT_SUCCESS);
 }
 

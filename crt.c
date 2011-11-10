@@ -23,12 +23,9 @@ void out_die(int signal)
 
 int main (int argc, char * argv[]) {
     int buf_size;
-    buf_size = 128; 
+    buf_size = 256; 
         int buf_index;
 	int parent_pid, fid;
-
-	caddr_t mmap_ptr; //pointer to shared memory map, type char *
-	output_buffer *out_mem_ptr;
 
 	// if parent tells us to terminate, then clean up first
 	sigset(SIGINT,out_die);
@@ -38,6 +35,11 @@ int main (int argc, char * argv[]) {
 	// i.e. process input arguments 
 	sscanf(argv[1], "%d", &parent_pid );
 	sscanf(argv[2], "%d", &fid );  // get the file id
+
+	if (fid == -1) {
+	    printf("Bad file for crt");
+        }
+
 
 	// attach to shared memory so we can pass input to 
 	// keyboard interrupt handler

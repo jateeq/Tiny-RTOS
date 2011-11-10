@@ -30,7 +30,7 @@ void process_CLK() {
 
 void processP()
 {
-/*
+
 	const int tWait = 500000; //rcv loop wait time in usec, approx value
         msg_envelope * env;
         env = (msg_envelope *) request_msg_env(); //or just malloc memory for one envelope
@@ -52,5 +52,5 @@ void processP()
 		//Yifei Addition:
 		release_msg_env(env);
 	}
-*/
+
 }

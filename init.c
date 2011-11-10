@@ -150,7 +150,7 @@ int initialize_process() {
                     return ERROR_FAIL_TO_MALLOC;
             }
 
-	    printf("sp ok");
+	    //printf("sp ok");
 
             pcb_pointer_tracker[i]->process_stack = stack_temp;
             pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
@@ -165,7 +165,7 @@ int initialize_process() {
                     return ERROR_FAIL_TO_MALLOC;
             }
 
-	    printf("jmp_buf ok");
+	    //printf("jmp_buf ok");
 
             pcb_pointer_tracker[i]->context = temp_context;
             rpq_enqueue(pcb_pointer_tracker[i]);
@@ -186,7 +186,7 @@ int initialize_process() {
                     }
             }
 
-	    printf("setjmp ok");
+	    //printf("setjmp ok");
     }
 
     for (i = 1; i < 3; i++) {
@@ -227,7 +227,7 @@ int init_keyboard_process() {
     input_filename = "in_buf";
 
     int fid = open(input_filename, O_RDWR | O_CREAT | O_EXCL,  (mode_t) 0755); //Create input buffer file
-    ftruncate(fid, 512); //Making the size of the file the same as the buffer
+    ftruncate(fid, 256); //Making the size of the file the same as the buffer
     int pid = getpid(); // parent id to pass on to keyboard process
      
      char arg_for_child1 [20];
@@ -240,7 +240,7 @@ int init_keyboard_process() {
      if (current_id == 0) { //Check if this is child process
          
          if (execl("./keyboard", "keyboard" ,arg_for_child1, arg_for_child2, NULL ) == -1) { // execute keyboard process and pass in the pid and fid. 
-             printf("Fuck!!");
+             printf("Error in creating keyboard child process\n");
              exit(1);
          }
      } else {
@@ -275,7 +275,8 @@ int init_crt_process() {
     
      int current_id = fork(); //Create kbd child process 	 	 
      if (current_id ==0) { //Check if this is child process
-         execl("./crt", "crt", arg_for_child1, arg_for_child2, NULL); // execute keyboard pocess and pass in the pid and fid. 
+         execl("./crt", "crt", arg_for_child1, arg_for_child2, NULL); // execute keyboard pocess and pass in the pid and fid.
+	 printf("Error in creating crt child process"); 
 	}
     
     //Parent process continues to create output memory map

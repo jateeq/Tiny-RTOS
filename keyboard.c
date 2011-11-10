@@ -12,6 +12,7 @@
 
 #define BUFFER_SIZE 128 
 #define DEBUG 1
+
 /*will need to lock file or use semaphores to regulate access to memory mapped file for concurrency reasons*/
 
 int debug(FILE* fid, char* error_msg[])
@@ -26,6 +27,7 @@ int main(int argc, char* argv[])
 {		
 	int retCode = 0;/*success*/
 	int pid;
+	int i;
 	int fid; /*parent process id and file id of RX shared map memory*/
 	FILE* fid2; /*file id for debug output*/
 	char*  mmap_ptr; /*pointer to the shared map memory*/
@@ -52,9 +54,12 @@ int main(int argc, char* argv[])
 	sscanf(argv[1], "%d", &pid); 
 	//sscanf(argv[2], "%d", &fid); 
 	
+	printf("pid: %i\n", pid);
+	printf("fid: %i\n", fid); 
+
 	/*establish connection to RX shared memory map*/
-	//fprintf(fid2, "buffer size:%d, fid:%d\n", BUFFER_SIZE, fid);
-	mmap_ptr = mmap((caddr_t *)0, BUFFER_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fid, (off_t) 0);
+
+	mmap_ptr = mmap((void *)0, BUFFER_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fid, (off_t) 0);
 	
 	if (mmap_ptr == -1)
 	{
@@ -87,6 +92,9 @@ int main(int argc, char* argv[])
 			//set flag to done, and signal rtx to start reading
 			in_mem_ptr->input_data[loop_index] = '\0'; fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
 			in_mem_ptr->flag = 1;                     
+			for (i = 0; i < loop_index; i++) {
+				printf("%c", in_mem_ptr->input_data[i]);
+		    }
 			/*pid_t x = IPROC_KBD;
 			kill(x, SIGUSR1);		
 			loop_index = 0;
@@ -96,8 +104,9 @@ int main(int argc, char* argv[])
 				usleep(1000);                              
 			}*/
 		}
-	//}while(1);  
-	}while(loop_index<3);  
+	}while(1);  
+	//}while(loop_index<3);  
 		
 	return retCode;
 }
+	
