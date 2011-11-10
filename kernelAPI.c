@@ -10,6 +10,83 @@
 #include <unistd.h>
 #include "rtx.h"
 
+int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
+{
+    if (dest_process_id==0)
+        return ERROR_INVALID_PID;
+        
+    PCB *target_PCB;
+    int n = NUM_OF_IPROC;
+
+    int i;
+    
+    for (i=0;i<n;i++)
+    //use dest_id to look up the target process PCB pointer
+    {
+        if (dest_process_id == pcb_pointer_tracker[i]->process_id)
+            target_PCB = pcb_pointer_tracker[i];
+    }
+	fflush(stdout);
+    printf("\ndestination process id: %i\n", dest_process_id); 
+    printf("target_PCB process id: %i\n", target_PCB->process_id); 
+	fflush(stdout);
+    msg_queue *temp_msg_q;
+    temp_msg_q= &target_PCB->msg_envelope_q;
+    //enqueue envelope onto the message queue of the target process
+    msg_envelope->sender_pid = current_process->process_id;
+    msg_envelope->receiver_pid = dest_process_id;
+    msg_enqueue(msg_envelope, temp_msg_q);
+	fflush(stdout);
+	printf("check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
+	if (target_PCB->msg_envelope_q.head==NULL) {
+		printf("send failed: msg_envelope_q is null\n");
+	}
+	fflush(stdout);
+    //get sender_id and dest_id and store them into envelope
+    /*
+    printf("Message received from sender # ");
+    printf("%i",current_process->process_id);
+    printf("to receiver # ");
+    printf("%i\n",dest_process_id);*/
+	//store the details of this send transaction on the send_trace_buffer
+    
+    n=BLOCKED_ON_RECEIVE;
+    
+    if(target_PCB->process_state == n)
+    {
+		target_PCB->process_state = READY;
+		rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
+    }
+    
+    return 0;
+}
+
+msg_envelope * k_receive_message()
+{
+	//printf("k_recieve_message: current process pid is %i", current_process->process_id);
+        while ( current_process->msg_envelope_q.size == 0)
+	{
+		if (current_process->process_priority != 0) 
+		{
+	           current_process->process_state=BLOCKED_ON_RECEIVE;
+	           process_switch();
+		}
+		else //this is iprocess
+			return NULL; 
+	}
+    msg_queue *temp_queue;
+    temp_queue = &current_process->msg_envelope_q;
+    msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
+	fflush(stdout);
+    printf("Message received from sender #:");
+    printf("%i",temp_envelope->sender_pid);
+	fflush(stdout);
+    printf("to receiver #:");
+    printf("%i\n",current_process->process_id);
+	//store the details of this receive transaction on the receive_trace_buffer
+	return temp_envelope;
+}
+
 int k_terminate()
 {
     int retCode = 0;
@@ -52,6 +129,8 @@ int k_send_console_chars(msg_envelope *message_envelope)
 {
 	int retCode = 0;
         int n=IPROC_CRT
+	fflush(stdout);
+	printf("Sending message from process P to CRT\n");  
 	if (message_envelope != NULL)
     {		
 		retCode = k_send_message(n, message_envelope);
@@ -71,6 +150,8 @@ int k_get_console_chars(msg_envelope *message_envelope )
     if (message_envelope != NULL)
     {
 		retCode = k_send_message(n, message_envelope);
+		fflush(stdout);
+		printf("get console chars was here\n");
 		kb_iproc();
     }
 	else
@@ -126,70 +207,6 @@ msg_envelope * k_request_msg_env()
 	msg_envelope *temp = msg_dequeue(free_env_Q);
     // NO DEQUEUE OR ENQUEUE FUNCTION FOR FREE_ENV_Q???
 	return temp;
-}
-
-int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
-{
-    if (dest_process_id==0)
-        return ERROR_INVALID_PID;
-        
-    PCB *target_PCB;
-    int n = NUM_OF_IPROC;
-
-    int i;
-    
-    for (i=0;i<n;i++)
-    //use dest_id to look up the target process PCB pointer
-    {
-        if (dest_process_id == pcb_pointer_tracker[i]->process_id)
-            target_PCB = pcb_pointer_tracker[i];
-    }
-    
-    msg_queue *temp_msg_q;
-    temp_msg_q= &target_PCB->msg_envelope_q;
-    
-    msg_enqueue(msg_envelope, temp_msg_q);
-    //enqueue envelope onto the message queue of the target process
-    msg_envelope->sender_pid = current_process->process_id;
-    msg_envelope->receiver_pid = dest_process_id;
-    //get sender_id and dest_id and store them into envelope
-    /*
-    printf("Message received from sender # ");
-    printf("%i",current_process->process_id);
-    printf("to receiver # ");
-    printf("%i\n",dest_process_id);*/
-	//store the details of this send transaction on the send_trace_buffer
-    
-    n=BLOCKED_ON_RECEIVE;
-    
-    if(target_PCB->process_state == n)
-    {
-		target_PCB->process_state = READY;
-		rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
-    }
-    
-    return 0;
-}
-
-msg_envelope * k_receive_message()
-{
-    if (current_process->process_priority != 0)
-    {
-        while ( current_process->msg_envelope_q.size == 0)
-       {
-           current_process->process_state=BLOCKED_ON_RECEIVE;
-           process_switch();
-       }
-    }
-    msg_queue *temp_qeue;
-    temp_qeue = &current_process->msg_envelope_q;
-    msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_qeue);
-    printf("Message received from sender #:");
-    printf("%i",temp_envelope->sender_pid);
-    printf("to receiver #:");
-    printf("%i\n",current_process->process_id);
-	//store the details of this receive transaction on the receive_trace_buffer
-	return temp_envelope;
 }
 
 int k_change_priority(int new_priority, int target_process_id)
