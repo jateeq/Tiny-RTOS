@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 		//fflush(fid2);
 		if (kbd_input != '\n')
 		{
-			if (loop_index < BUFFER_SIZE)			
+			if (loop_index < 128)			
 			{
 				in_mem_ptr->input_data[loop_index] = kbd_input; //fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
 				in_mem_ptr->input_count++; //fprintf(fid2, "input count: %d\n", in_mem_ptr->input_count);
@@ -81,8 +81,8 @@ int main(int argc, char* argv[])
 		else
 		{
 			//set flag to done, and signal rtx to start reading
-			//in_mem_ptr->input_data[loop_index] = '\0'; //fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
-			in_mem_ptr->flag = 1;                     
+			//in_mem_ptr->input_data[loop_index] = '\0'; //fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);			
+			in_mem_ptr->flag = 1;                     			
 			/*for (i = 0; i < loop_index; i++) {
 				printf("%c", in_mem_ptr->input_data[i]);
 		    }*/			
