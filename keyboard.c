@@ -9,8 +9,7 @@
 #include <signal.h> /*kill*/
 #include "rtx.h"
 #include "queue.h"
-
-#define BUFFER_SIZE 128 
+#define BUFFER_SIZE 128
 #define DEBUG 1
 
 /*will need to lock file or use semaphores to regulate access to memory mapped file for concurrency reasons*/
@@ -38,17 +37,11 @@ int main(int argc, char* argv[])
 	if (DEBUG)
 	{
 		fid2 = fopen("keyboardOutput", "w+");
-		if (fid2 == -1)
+		if (fid2 == NULL)
 		{
 			fprintf(fid2, "Keyboard Proc: could not open keyboardOutput file");
 		}
-	}
-	
-	fid = open("mmapfile", O_RDWR);
-	if (fid == -1)
-	{		
-		fprintf(fid2, "Keyboard Proc: Could not open memory mapped file.\n");
-	}
+	}	
     
 	sscanf(argv[1], "%d", &pid); 
 	sscanf(argv[2], "%d", &fid); 
@@ -60,7 +53,7 @@ int main(int argc, char* argv[])
 
 	mmap_ptr = mmap((void *)0, BUFFER_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fid, (off_t) 0);
 	
-	if (mmap_ptr == -1)
+	if (mmap_ptr == NULL)
 	{
 		if (DEBUG) debug(fid2, "Keyboard Process: Memory map could not be created\n");
 	//	die(0);//what should the parameter be?
@@ -88,19 +81,18 @@ int main(int argc, char* argv[])
 		else
 		{
 			//set flag to done, and signal rtx to start reading
-			in_mem_ptr->input_data[loop_index] = '\0'; fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
+			//in_mem_ptr->input_data[loop_index] = '\0'; //fprintf(fid2, "loop index: %d, memory input: %c\n", loop_index, in_mem_ptr->input_data[loop_index]);
 			in_mem_ptr->flag = 1;                     
-			for (i = 0; i < loop_index; i++) {
+			/*for (i = 0; i < loop_index; i++) {
 				printf("%c", in_mem_ptr->input_data[i]);
-		    }
-			pid_t x = IPROC_KBD;
-			kill(x, SIGUSR1);		
+		    }*/			
 			loop_index = 0;
-			in_mem_ptr->input_count = 0;
-			while(in_mem_ptr->flag == 1)
+			kill(pid, SIGUSR1);					
+			//in_mem_ptr->input_count = 0;
+			/*while(in_mem_ptr->flag == 1)
 			{
 				usleep(1000);                              
-			}/**/
+			}*/
 		}
 	}while(1);  		
 	return retCode;
