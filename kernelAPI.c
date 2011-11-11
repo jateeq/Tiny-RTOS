@@ -26,10 +26,10 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
         if (dest_process_id == pcb_pointer_tracker[i]->process_id)
             target_PCB = pcb_pointer_tracker[i];
     }
-	fflush(stdout);
-    printf("\ndestination process id: %i\n", dest_process_id); 
-    printf("target_PCB process id: %i\n", target_PCB->process_id); 
-	fflush(stdout);
+//	fflush(stdout);
+    //printf("\ndestination process id: %i\n", dest_process_id); 
+    //printf("target_PCB process id: %i\n", target_PCB->process_id); 
+	//fflush(stdout);
     msg_queue *temp_msg_q;
     temp_msg_q= &target_PCB->msg_envelope_q;
     //enqueue envelope onto the message queue of the target process

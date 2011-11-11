@@ -59,6 +59,8 @@ int main (int argc, char * argv[]) {
 
 	while (1){ //an infinite loop - exit when parent signals us
 		if (out_mem_ptr->flag == 1) {//ready to output
+			fflush(stdout);
+			printf("CRT is outputting...\n");
 			buf_index = 0;
 			while (buf_index <= out_mem_ptr->output_count) {
 				if (out_mem_ptr->output_data[buf_index] != '\0') {
@@ -68,10 +70,11 @@ int main (int argc, char * argv[]) {
 			}
 			out_mem_ptr->flag = 0; 
 			out_mem_ptr->output_count = 0;
-			kill(parent_pid, SIGUSR2); 
-		} else {
-			while (out_mem_ptr->flag == 0)
-				usleep(100000);
 		}
+		fflush(stdout);
+		//printf("CRT is signalling RTX\n"); 
+		fflush(stdout);
+		usleep(100000);
+		kill(parent_pid, SIGUSR2); 
 	}
 }
