@@ -67,8 +67,8 @@ int main(int argc, char* argv[])
 	do
 	{
 		kbd_input = getchar();
-		fprintf(fid2, "the input was: %c\n", kbd_input);
-		fflush(fid2);
+		//fprintf(fid2, "the input was: %c\n", kbd_input);
+		//fflush(fid2);
 		if (kbd_input != '\n')
 		{
 			if (loop_index < BUFFER_SIZE)			
