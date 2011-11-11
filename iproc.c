@@ -24,9 +24,6 @@ void kb_iproc(){
         msg_enqueue( msg , cur_msg_queue);
     }
 */	
-	FILE* fid2;
-	fid2 = fopen("keyboardOutput", "w+"); //just for debugging		
-	
 	//THIS IS VERY BAD BECAUSE IT CHANGES CURRENT PROCESS MANUALLY AND DOES, MUST BE CHANGED
 	    int n = NUM_OF_IPROC;
 	    int t = IPROC_KBD; 
@@ -38,49 +35,73 @@ void kb_iproc(){
 		if (t == pcb_pointer_tracker[i]->process_id)
 		    current_process = pcb_pointer_tracker[i];
 	    }
-		
+
 	fflush(stdout);
 	printf("kb_iproc msg_queue size: %i\n", current_process->msg_envelope_q.size); 
 	printf("current executing proc id (should be KB): %i\n", current_process->process_id); 
 	fflush(stdout);
 	
-    if(current_process->msg_envelope_q.size != 0)
-    {
-	//check if the buffer is ready for transmitting
-		printf("KB_IPROC: mem ptr: %d\n",in_mem_ptr->flag);fflush(stdout);
-        if (in_mem_ptr->flag == 1)
-        {
-			msg_queue * cur_msg_queue = &(current_process->msg_envelope_q); 			
-			if (cur_msg_queue!= NULL)
-			{
-				msg_envelope * current_msg = cur_msg_queue->head; 							
-				if (current_msg != NULL)
+	//msg_envelope * msg_env = (msg_envelope *)k_request_msg_env();
+
+	msg_envelope * msg_env = (msg_envelope *)k_receive_message(); 
+
+	while (msg_env == NULL) {
+	    usleep(1000000);	
+	    //msg_env = (msg_envelope *) k_receive_message;
+	}	
+
+	if( msg_env != NULL)
+	{
+		//check if the buffer is ready for transmitting
+                if (in_mem_ptr->flag == 1)
+		{
+			printf("IPROCKBD: calling receive...\n");	
+
+			if (msg_env == NULL) {
+			   printf("KBD_IPROC: message env is null\n");
+			}
+			else
+			{			
+			  	printf("KBD_IPROC: message reveived!\n");
+				printf("KBD IPROC: msg env: %d\n", msg_env->msg_size);
+				printf("KBD_IPROC: Setting the kb flag to zero!\n");
+				fflush(stdout);
+				in_mem_ptr->flag = 0;
+				printf("KBD_IPROC: copying contents into message to be sent to process P\n"); fflush		(stdout);				
+				int count = 0;
+//printf("KBD_IPROC: sending message to process p"); fflush(stdout);				
+				//int proc_p = PROC_P;k_send_message(proc_p, msg_env);					
+				for(count;count<in_mem_ptr->input_count;count++)
 				{
-				printf(fid2, "KB_IPROC: message queue pointer: %d\n", current_msg);
+					msg_env->msg_text[count] = in_mem_ptr->input_data[count];
 				}
-			}
-			
-			
-			
-			/*input_buffer command; //the command that was entered by the user
-			strcpy(command.input_data, in_mem_ptr->input_data);
+				msg_env->msg_size = in_mem_ptr->input_count;
+				in_mem_ptr->input_count = 0;
+				//strcpy(msg_env->msg_text,in_mem_ptr->input_data);
+				int proc_p = PROC_P; 		
+				printf("KBD_IPROC: sending message to process p"); fflush(stdout);				
+				k_send_message(proc_p, msg_env);
+			}		
+		}
+	} 
 
-			set number of chars read to zero so receiver knows micro is done reading*/
+/* this is not not needed
+    else        //the message queue is empty
+    { 
+        current_process->process_state = "idle";
+    }
+*/
 
-			/*in_mem_ptr->input_count = 0;
-			in_mem_ptr->flag = 0;
-			int i = 0;
-			for (i; i<sizeof(command.input_data); i++)
-			{
-					current_msg->msg_text[i] = command.input_data[i]; //Working?
-			}
-			current_msg->msg_type = CONSOLE_INPUT;        
-			int dest_pid = PROC_P;
-			current_msg->sender_pid = current_process->process_id;
-			printf("Sending message back to Process P\n");
-			k_send_message(dest_pid, current_msg);    */            
-        }
-	}
+	/*this is for testing only
+    input_buffer command;
+    if (in_mem_ptr->input_count != 0)
+    {
+        strcpy(command.input_data, in_mem_ptr->input_data);
+        printf("Keyboard input was: %s\n", command.input_data);
+        in_mem_ptr->flag = 0;
+	in_mem_ptr->input_count = 0;
+    }
+*/
 }
 
 void crt_iproc()
@@ -119,9 +140,16 @@ void crt_iproc()
 		}
 
 		//fill buffer
-		strcpy(out_mem_ptr->output_data, msg->msg_text);
-		out_mem_ptr->output_count = sizeof(msg->msg_text);
+		//strcpy(out_mem_ptr->output_data, msg->msg_text); //Fix 
+		//out_mem_ptr->output_count = sizeof(msg->msg_text);
+		int count = 0;
+		printf("CRT IPROC: Copying %i characters.\n", msg->msg_size);
+		for(count; count < msg->msg_size; count++)
+                {
+                    out_mem_ptr->output_data[count] = msg->msg_text[count];
+                }
 		out_mem_ptr->flag = 1;
+		out_mem_ptr->output_count = msg->msg_size;
 		//waiting for flag to become 0 to indicate CRT has finished output
 		while (out_mem_ptr->flag == 1)
 		{

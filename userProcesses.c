@@ -39,13 +39,17 @@ void processP()
 	}
 	//now enter infinite loop
 	while (1) {
+		printf("P: Send message to kbd..\n");
 		get_console_chars (env); //keyboard input
-		env = (msg_envelope *) k_receive_message();//change this to userAPI call later
+		fflush(stdout);
+		printf("P: waiting for message from kb..\n");		
+		env = (msg_envelope *) receive_message();//change this to userAPI call later
 
 		while (env == NULL) {
 			//fflush(stdout);
 			//printf("ProcessP going to sleep.\n");
 			usleep(tWait);
+		//	printf("P: calling receive..2\n");					
 			env = (msg_envelope *) receive_message();
 			if (env != NULL) {
 			   fflush(stdout);
@@ -56,7 +60,7 @@ void processP()
                 int i = 0;
 
 		fflush(stdout);
-		printf("\nthe output from procP was: "); 
+		printf("\nthe message from keyboard was: "); 
                 for (i=0; i<sizeof(env->msg_text); i++)
                 {
                         printf("%c", env->msg_text[i]); 

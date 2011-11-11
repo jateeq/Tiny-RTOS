@@ -48,6 +48,7 @@ int initialize_data() {
    
    for (i = 0; i < 60; i ++) {
        msg_envelope *temp_envelope = (msg_envelope *) malloc(sizeof(msg_envelope));
+       temp_envelope->msg_size = 0;
        msg_enqueue(temp_envelope, free_env_Q);
    }
    

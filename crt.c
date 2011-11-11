@@ -62,12 +62,11 @@ int main (int argc, char * argv[]) {
 			fflush(stdout);
 			printf("CRT is outputting...\n");
 			buf_index = 0;
-			while (buf_index <= out_mem_ptr->output_count) {
-				if (out_mem_ptr->output_data[buf_index] != '\0') {
+			while (buf_index < out_mem_ptr->output_count) {
 					printf("%c", (char) out_mem_ptr->output_data[buf_index]);
-				}
 				buf_index++;
 			}
+			printf("\n");
 			out_mem_ptr->flag = 0; 
 			out_mem_ptr->output_count = 0;
 		}

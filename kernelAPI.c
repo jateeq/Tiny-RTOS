@@ -26,10 +26,6 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
         if (dest_process_id == pcb_pointer_tracker[i]->process_id)
             target_PCB = pcb_pointer_tracker[i];
     }
-//	fflush(stdout);
-    //printf("\ndestination process id: %i\n", dest_process_id); 
-    //printf("target_PCB process id: %i\n", target_PCB->process_id); 
-	//fflush(stdout);
     msg_queue *temp_msg_q;
     temp_msg_q= &target_PCB->msg_envelope_q;
     //enqueue envelope onto the message queue of the target process
@@ -63,27 +59,33 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
 msg_envelope * k_receive_message()
 {
-	//printf("k_recieve_message: current process pid is %i", current_process->process_id);
+	if ( current_process->process_id ==5) 
+	printf("k_recieve_message: current process pid is %i", current_process->process_id);
         while ( current_process->msg_envelope_q.size == 0)
-	{
-		if (current_process->process_priority != 0) 
+	{	
+		/*if (current_process->process_priority != 0) 
 		{
 	           current_process->process_state=BLOCKED_ON_RECEIVE;
 	           process_switch();
 		}
 		else //this is iprocess
-			return NULL; 
+		{*/
+		return NULL; //}
 	}
     msg_queue *temp_queue;
     temp_queue = &current_process->msg_envelope_q;
     msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
 	fflush(stdout);
-    printf("Message received from sender #:");
+    printf("k_recieve_message: Message received from sender #:");
     printf("%i",temp_envelope->sender_pid);
 	fflush(stdout);
-    printf("to receiver #:");
+    printf("k_recieve_message: to receiver #:");
     printf("%i\n",current_process->process_id);
+	printf("k_message_receive: returning message");
 	//store the details of this receive transaction on the receive_trace_buffer
+printf("queue dequue: msg env: %d\n", temp_envelope->msg_size);
+printf("msg env envelope sender: %i\n", temp_envelope->sender_pid);
+printf("msg env envelope dest: %i\n", temp_envelope->receiver_pid);
 	return temp_envelope;
 }
 
@@ -134,7 +136,6 @@ int k_send_console_chars(msg_envelope *message_envelope)
 	if (message_envelope != NULL)
     {		
 		retCode = k_send_message(n, message_envelope);
-		crt_iproc();
 	}
 	else 
 		retCode = ERROR_INVALID_MID;
@@ -149,10 +150,11 @@ int k_get_console_chars(msg_envelope *message_envelope )
     
     if (message_envelope != NULL)
     {
+		printf("queue dequue: msg env: %d\n", message_envelope->msg_size);
 		retCode = k_send_message(n, message_envelope);
 		fflush(stdout);
 		printf("get console chars was here\n");
-		kb_iproc();
+		//kb_iproc();
     }
 	else
 		retCode = ERROR_INVALID_MID;

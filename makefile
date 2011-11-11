@@ -44,7 +44,6 @@ build/userProcesses.o : userProcesses.c userAPI.c
 
 clean:
 	rm -r *.o
-	rm *.exe
 	rm in_buf
 	rm out_buf
-	rm rtx_main.exe.stackdump
+	rm crt rtx_main keyboard
