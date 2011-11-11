@@ -100,68 +100,73 @@ void kb_iproc(){
 */
 }
 
-void crt_iproc(int signum)
+void crt_iproc()
 {
-    int i;
-    int n = 3;
-    int t = IPROC_CRT;
-            for (i=0;i<n;i++)
-            //use dest_id to look up the target process PCB pointer
-            {
-                if (t == pcb_pointer_tracker[i]->process_id)
-                    current_process = pcb_pointer_tracker[i];
-            }
+	//set current process
+	int i;
+	int n = 3;
+	int t = IPROC_CRT;
+	for (i=0;i<n;i++)
+	{
+	if (t == pcb_pointer_tracker[i]->process_id)
+	    current_process = pcb_pointer_tracker[i];
+	}
 
-    msg_envelope * msg;
-    int iproc_crt_pid; 
-    int error_code;
-    
-    fflush(stdout); 
-    printf("CRT iproc invoked. Process id: %i; receiving message from process P\n", current_process->process_id);
-    
-    msg = (msg_envelope *) k_receive_message();
+	msg_envelope * msg;
+	int proc_p_pid; 
+	int error_code;
+
+	msg = (msg_envelope *) k_receive_message();
    
-    if (msg == NULL) {
-	fflush(stdout);
-        printf("Waiting for message from process P\n");
-    } else {
-	fflush(stdout);
-    	printf("Message from process P was: %c\n", msg->msg_text[0]);
-	fflush(stdout);
-    }
+	/* we shouldn't try to keep getting message. instead, CRT process will signal and invoke repeatedly
+	while (msg == NULL)
+	{
+		usleep(100000); 
+		msg = (msg_envelope *) k_receive_message(); 
+	} */
 
-    while (msg == NULL)
-    {
-        usleep(100000); 
-        msg = (msg_envelope *) k_receive_message(); 
-    }
+	if (msg != NULL) {
 
-    if (signum != SIGUSR2)//this means the caller wants to output something
-    {
-	printf("Signal from CRT has not been received...Buffering output\n");
-        while (out_mem_ptr->flag != 0)
-        { //Flag status 0: ready to be filled. Flag status 1: filled and waiting to be outputted
-                usleep(100000);
-        }
+		fflush(stdout);
+		printf("Message from process P was: %c\n", msg->msg_text[0]);
+		//waiting for flag to become 0 so that the buffer is ready to be filled
+		while (out_mem_ptr->flag == 1)
+		{
+			usleep(100000);
+		}
 
-        //get ready for output
-        strcpy(out_mem_ptr->output_data, msg->msg_text);
-        out_mem_ptr->output_count = sizeof(msg->msg_text);
-        out_mem_ptr->flag = 1;
-        iproc_crt_pid = IPROC_CRT;
-        //put the message back into the message queue to be used later when sending the confirmation message. 
-        error_code = k_send_message(iproc_crt_pid, msg);
-        //unsafe assumption: there will be, at anytime, maximum of 1 message in the message queue. 
-    }
-    else { //we receive SIGUSR2 which means we need to send the confirmation message
-        fflush(stdout);
-	printf("Signal from CRT has been received. Sending acknowledgement message back to process P\n");
-	fflush(stdout);
-	msg->receiver_pid = msg->sender_pid; //change the receiver to the original sender
-        msg->sender_pid = current_process->process_id;
-        msg->msg_type = DISPLAY_ACK;
-        error_code = k_send_message(iproc_crt_pid, msg);
-    }
+		//fill buffer
+		strcpy(out_mem_ptr->output_data, msg->msg_text);
+		out_mem_ptr->output_count = sizeof(msg->msg_text);
+		out_mem_ptr->flag = 1;
+		//waiting for flag to become 0 to indicate CRT has finished output
+		while (out_mem_ptr->flag == 1)
+		{
+			usleep(100000);
+		}
+		//send confirmation message to invoking process
+		proc_p_pid = PROC_P;
+		msg->receiver_pid = msg->sender_pid;
+		msg->sender_pid = current_process->process_id; 
+		msg->msg_type = DISPLAY_ACK;
+		error_code = k_send_message(proc_p_pid, msg);
+		fflush(stdout);
+		printf("Signal from CRT has been received. Acknowledgment sent back to process P\n");
+		fflush(stdout);
+	} else {
+		//fflush(stdout);
+		//printf("Waiting for message from process P\n");
+		//fflush(stdout);
+	}
+
+	//change current process back to Proc_P
+	n = 3;
+	t = PROC_P;
+	for (i=0;i<n;i++)
+	{
+	if (t == pcb_pointer_tracker[i]->process_id)
+	    current_process = pcb_pointer_tracker[i];
+	}
     return; 
 }
 
@@ -194,11 +199,10 @@ void signal_handler(int signum)
                     case SIGUSR1: // kb handler
                             kb_iproc();
                             break;
-/*
+
                     case SIGUSR2: // crt handler
                             crt_iproc();
                             break;
-*/
             }	
             //current_process = tempPCB;
             free(tempPCB);
