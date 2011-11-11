@@ -24,6 +24,9 @@ void kb_iproc(){
         msg_enqueue( msg , cur_msg_queue);
     }
 */	
+	FILE* fid2;
+	fid2 = fopen("keyboardOutput", "w+"); //just for debugging		
+	
 	//THIS IS VERY BAD BECAUSE IT CHANGES CURRENT PROCESS MANUALLY AND DOES, MUST BE CHANGED
 	    int n = NUM_OF_IPROC;
 	    int t = IPROC_KBD; 
@@ -35,69 +38,49 @@ void kb_iproc(){
 		if (t == pcb_pointer_tracker[i]->process_id)
 		    current_process = pcb_pointer_tracker[i];
 	    }
-
+		
 	fflush(stdout);
 	printf("kb_iproc msg_queue size: %i\n", current_process->msg_envelope_q.size); 
 	printf("current executing proc id (should be KB): %i\n", current_process->process_id); 
 	fflush(stdout);
 	
-
     if(current_process->msg_envelope_q.size != 0)
     {
 	//check if the buffer is ready for transmitting
+		printf("KB_IPROC: mem ptr: %d\n",in_mem_ptr->flag);fflush(stdout);
         if (in_mem_ptr->flag == 1)
         {
-	    msg_queue * cur_msg_queue = &(current_process->msg_envelope_q);
-                msg_envelope * current_msg = cur_msg_queue->head;
-                input_buffer command; //the command that was entered by the user
-                strcpy(command.input_data, in_mem_ptr->input_data);
+			msg_queue * cur_msg_queue = &(current_process->msg_envelope_q); 			
+			if (cur_msg_queue!= NULL)
+			{
+				msg_envelope * current_msg = cur_msg_queue->head; 							
+				if (current_msg != NULL)
+				{
+				printf(fid2, "KB_IPROC: message queue pointer: %d\n", current_msg);
+				}
+			}
+			
+			
+			
+			/*input_buffer command; //the command that was entered by the user
+			strcpy(command.input_data, in_mem_ptr->input_data);
 
-                /*set number of chars read to zero so receiver knows micro is done reading*/
+			set number of chars read to zero so receiver knows micro is done reading*/
 
-                in_mem_ptr->input_count = 0;
-                in_mem_ptr->flag = 0;
-                int i = 0;
-                for (i; i<sizeof(command.input_data); i++)
-                {
-                        current_msg->msg_text[i] = command.input_data[i]; //Working?
-                }
-                current_msg->msg_type = CONSOLE_INPUT;        
-                int dest_pid = PROC_P;
-                current_msg->sender_pid = current_process->process_id;
-		printf("Sending message back to Process P\n");
-                k_send_message(dest_pid, current_msg);                
+			/*in_mem_ptr->input_count = 0;
+			in_mem_ptr->flag = 0;
+			int i = 0;
+			for (i; i<sizeof(command.input_data); i++)
+			{
+					current_msg->msg_text[i] = command.input_data[i]; //Working?
+			}
+			current_msg->msg_type = CONSOLE_INPUT;        
+			int dest_pid = PROC_P;
+			current_msg->sender_pid = current_process->process_id;
+			printf("Sending message back to Process P\n");
+			k_send_message(dest_pid, current_msg);    */            
         }
-
-	//THIS IS VERY BAD BECAUSE IT CHANGES CURRENT PROCESS MANUALLY AND DOES, MUST BE CHANGED
-	    int n = 3;
-	    t = PROC_P;
-	    int i;
-	    
-	    for (i=0;i<n;i++)
-	    //use dest_id to look up the target process PCB pointer
-	    {
-		if (t == pcb_pointer_tracker[i]->process_id)
-		    current_process = pcb_pointer_tracker[i];
-	    }
-
-    }
-/* this is not not needed
-    else        //the message queue is empty
-    {
-        current_process->process_state = "idle";
-    }
-*/
-
-	/*this is for testing only
-    input_buffer command;
-    if (in_mem_ptr->input_count != 0)
-    {
-        strcpy(command.input_data, in_mem_ptr->input_data);
-        printf("Keyboard input was: %s\n", command.input_data);
-        in_mem_ptr->flag = 0;
-	in_mem_ptr->input_count = 0;
-    }
-*/
+	}
 }
 
 void crt_iproc()
