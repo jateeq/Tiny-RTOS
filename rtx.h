@@ -19,23 +19,23 @@ extern "C" {
 
 /*Constants*/
 //RTX Processes
-#define NUM_OF_PROC 8;
-#define NUM_OF_USER_PROC 5;
-#define NUM_OF_IPROC 3;
+#define NUM_OF_PROC 8
+#define NUM_OF_USER_PROC 5
+#define NUM_OF_IPROC 3
 
 //Process IDs
-#define PROC_A 0;
-#define PROC_B 1;
-#define PROC_C 2;
-#define PROC_CCI 3;
-#define PROC_CLK 4;
-#define IPROC_KBD 5;
-#define IPROC_CRT 6;
-#define IPROC_TIMER 7;
-#define PROC_NULL 8;
+#define PROC_A 0
+#define PROC_B 1
+#define PROC_C 2
+#define PROC_CCI 3
+#define PROC_CLK 4
+#define IPROC_KBD 5
+#define IPROC_CRT 6
+#define IPROC_TIMER 7
+#define PROC_NULL 8
 
 //PROCP
-#define PROC_P 9;
+#define PROC_P 9
     
 //Process priorities
 #define IPROCESS 0 //used for iprocesses
@@ -44,35 +44,35 @@ extern "C" {
 #define LOW 3
 
 //Process state
-#define READY 0;
-#define EXECUTING 1;
-#define INTERRUPTED 2;
-#define BLOCKED_ON_ENVELOPE 3;
-#define BLOCKED_ON_RECEIVE 4;
+#define READY 0
+#define EXECUTING 1
+#define INTERRUPTED 2
+#define BLOCKED_ON_ENVELOPE 3
+#define BLOCKED_ON_RECEIVE 4
 
 //IPC
-#define MAX_NUM_MSG_ENV 150;
-#define MAX_CHAR = 128; 
+#define MAX_NUM_MSG_ENV 150
+#define MAX_CHAR = 128
 
 //Message types
-#define DISPLAY_ACK 0;
-#define CONSOLE_INPUT 1;
-#define TERMINATED 2;
-#define INCREMENT_CLOCK 3; 
-#define CHANGE_CLOCK 4; 
-#define STOP_CLOCK 3; 
+#define DISPLAY_ACK 0
+#define CONSOLE_INPUT 1
+#define TERMINATED 2
+#define INCREMENT_CLOCK 3
+#define CHANGE_CLOCK 4
+#define STOP_CLOCK 3
 
 //Success Code
-#define SUCCESS 0;
+#define SUCCESS 0
 
 //Error Codes
-#define ERROR_BAD_MEMORY_UNMAP -1;
-#define ERROR_BAD_FILE_CLOSE -2;	
-#define ERROR_INVALID_PID -3;
-#define ERROR_INVALID_MID -4; //invalid message id
-#define ERROR_FAIL_TO_MALLOC -5;
-#define ERROR_INVALID_PRIORITY -6;
-#define ERROR_BAD_FILE_UNLINK -7;
+#define ERROR_BAD_MEMORY_UNMAP -1
+#define ERROR_BAD_FILE_CLOSE -2	
+#define ERROR_INVALID_PID -3
+#define ERROR_INVALID_MID -4 //invalid message id
+#define ERROR_FAIL_TO_MALLOC -5
+#define ERROR_INVALID_PRIORITY -6
+#define ERROR_BAD_FILE_UNLINK -7
 
 //Priority
 #define IPROCESS 0 //used for iprocesses
@@ -85,7 +85,7 @@ extern "C" {
 #define OFF 0
     
 //Buffer Size for TX and RX:
-#define BUFFER_SIZE 128; //bytes
+#define BUFFER_SIZE 128 //bytes
 /**/
 
 /*RTX objects*/
