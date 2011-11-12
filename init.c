@@ -228,6 +228,7 @@ int init_keyboard_process() {
     input_filename = "in_buf";
 
     int fid = open(input_filename, O_RDWR | O_CREAT | O_EXCL,  (mode_t) 0755); //Create input buffer file
+    fileid[0] = fid; //termination
     ftruncate(fid, 256); //Making the size of the file the same as the buffer
     int pid = getpid(); // parent id to pass on to keyboard process
      
@@ -247,7 +248,7 @@ int init_keyboard_process() {
      } else {
         //Parent process continues to create input memory map
         mmap_ptr = mmap((caddr_t) 0, 512, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
-
+ 	childpid[0]=current_id; //termination
         if (mmap_ptr == NULL) {
             printf("Error: Failed at creating memory map. Exiting...\n");
             // k_terminate();
@@ -265,6 +266,7 @@ int init_keyboard_process() {
 int init_crt_process() { 
     output_filename = "out_buf";
     int fid = open(output_filename, O_RDWR | O_CREAT | O_EXCL,  (mode_t) 0755); //Create out  buffer file
+    fileid[1] = fid; //termination
     ftruncate(fid, 128); //Making the size of the file the same as the buffer
     int pid = getpid(); // parent id to pass on to keyboard process
        
@@ -280,6 +282,7 @@ int init_crt_process() {
 	 printf("Error in creating crt child process"); 
 	}
     
+    childpid[1]=current_id; //termination
     //Parent process continues to create output memory map
     mmap_ptr = mmap((caddr_t) 0, 128, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
 	

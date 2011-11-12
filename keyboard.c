@@ -14,6 +14,11 @@
 
 /*will need to lock file or use semaphores to regulate access to memory mapped file for concurrency reasons*/
 
+void in_die(int signal) {
+	exit(0);
+}
+
+
 int main(int argc, char* argv[])
 {	
 	int retCode = 0;/*success*/
@@ -24,6 +29,8 @@ int main(int argc, char* argv[])
 	input_buffer *in_mem_ptr; /*C standard pointer to the shared map memory*/
 	int loop_index;
 	char kbd_input; //stores the current char entered on keyboard	
+
+	sigset(SIGINT, in_die);
 
 	/*fid = open("mmapfile", O_RDWR);
 	if (fid == -1)

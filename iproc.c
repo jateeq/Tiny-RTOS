@@ -83,7 +83,16 @@ void kb_iproc(){
 				k_send_message(proc_p, msg_env);
 			}		
 		}
-	} 
+	}
+
+        n = 3;
+        t = PROC_P;
+        for (i=0;i<n;i++)
+        {
+        if (t == pcb_pointer_tracker[i]->process_id)
+            current_process = pcb_pointer_tracker[i];
+        }
+ 
 
 /* this is not not needed
     else        //the message queue is empty
@@ -189,24 +198,22 @@ void timer_iproc()
 void signal_handler(int signum)
 {
     //save the context of the currently running process
-    PCB* tempPCB;
+    //PCB* tempPCB;
 /*
     RTX * tempRTX = (RTX *)malloc(sizeof(RTX));
 */			
-    tempPCB = (PCB *)malloc(sizeof(PCB));
-    if (tempPCB != NULL)
-    {
-            tempPCB = current_process;
+    //tempPCB = (PCB *)malloc(sizeof(PCB));
+   // if (tempPCB != NULL)
+  //  {
+         //   tempPCB = current_process;
             switch(signum)
             {
-/*
                     case SIGINT: 
-                            die();
+                            k_terminate();
                             break;
                     case SIGALRM:
-                            timer_iproc(signum);
+             //               timer_iproc(signum);
                             break;
-*/
                     case SIGUSR1: // kb handler
                             kb_iproc();
                             break;
@@ -216,10 +223,10 @@ void signal_handler(int signum)
                             break;
             }	
             //current_process = tempPCB;
-            free(tempPCB);
+         //   free(tempPCB);
 /*
             process_switch();//call the scheduler
 */
-    }
+    
 }
 

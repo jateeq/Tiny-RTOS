@@ -72,6 +72,7 @@ extern "C" {
 #define ERROR_INVALID_MID -4; //invalid message id
 #define ERROR_FAIL_TO_MALLOC -5;
 #define ERROR_INVALID_PRIORITY -6;
+#define ERROR_BAD_FILE_UNLINK -7;
 
 //Priority
 #define IPROCESS 0 //used for iprocesses
@@ -84,7 +85,7 @@ extern "C" {
 #define OFF 0
     
 //Buffer Size for TX and RX:
-#define BUFFER_SIZE = 128; //bytes
+#define BUFFER_SIZE 128; //bytes
 /**/
 
 /*RTX objects*/
@@ -181,6 +182,10 @@ char* input_filename; //file address of shared RX mapped file
 char* output_filename; //file address of shared TX mapped file
 caddr_t *mmap_ptr;
 PCB* current_process;
+int childpid[2];
+int fileid[2];
+char* KBfilename[8];
+char* CRTfilename[3];
 /**/
 
 

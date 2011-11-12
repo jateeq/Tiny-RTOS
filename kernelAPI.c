@@ -89,42 +89,97 @@ printf("msg env envelope dest: %i\n", temp_envelope->receiver_pid);
 	return temp_envelope;
 }
 
-int k_terminate()
+int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
 {
-    int retCode = 0;
-    exit(0);//kill KB and CRT child processes
-    
-    munmap(mmap_ptr, 128);
-    //unmap memory maps for both processes
-	
-    if (mmap_ptr)
-        retCode = ERROR_BAD_MEMORY_UNMAP;
-	
-    //close temp memory map files and unlink them (i.e delete them)
-	
-   // if (bad file closes)
-        retCode = ERROR_BAD_FILE_CLOSE;
-	
-	
-    //kill rtx process and return control to Linux
-	
-    free(free_env_Q);
-    free(blocked_on_resource_Q);
-    free(sorted_timeout_lst);
-    free(rpq);
-    free(in_mem_ptr);
-    free(out_mem_ptr);
+    int retCode=0;
     int i;
+    //int z = sizeof(childpid); //this shit returns size 8 somehow
+    for (i=0;i<2;i++)
+    {
+	fflush(stdout);
+	printf("childpid: %i\n", childpid[i]);
+	fflush(stdout);
+        kill(childpid[i],SIGINT);
+    }
+    // terminate child process(es)
+    //int n;
+    //n = BUFFER_SIZE; STUPID C DOES NOT RECOGNIZE THIS SHIT FIX LATER ASSHOLES
+    int statusfn1,statusfn2,statusfid,status1,status2;
+    status1 = munmap(in_mem_ptr, 256); 
+    status2 = munmap(out_mem_ptr, 256);
     
-    for (i = 0; i < 8; i++)
-        free(pcb_pointer_tracker[i]);
+    if (status1==-1 || status2==-1)
+    // remove shared memory segment and do some standard error checks
+    {
+	fflush(stdout);
+        printf("BAD UNMAP\n");
+        retCode = ERROR_BAD_MEMORY_UNMAP;
+    }
+    
+    i=0;
+    for (i;i<2;i++)
+    {
+        fflush(stdout);
+	printf("fid: %i\n", fileid[i]);
+        statusfid = close(fileid[i]); //this shit is wrooooooooooong
+        // close the temporary mmap file
+        
+        if (statusfid == -1)
+        {
+	    fflush(stdout);
+            printf("BAD FILE CLOSE\n");
+            retCode = ERROR_BAD_FILE_CLOSE;
+        }
+    }
 
-    free(mmap_ptr);
-    free(input_filename);
-    free(output_filename);
-    free(current_process);
-	
-	return retCode;
+    status1 = unlink("in_buf");
+    status2 = unlink("out_buf");
+
+    if (status1==-1 || status2==-1)
+    // remove shared memory segment and do some standard error checks
+    {
+        fflush(stdout);
+        printf("BAD MMAP UNLINKP\n");
+        retCode = ERROR_BAD_FILE_UNLINK;
+    }
+ 
+    printf("Deallocating data structures\n");   
+
+   printf("Free free envelope queue\n");
+     free(free_env_Q);
+
+    printf("Free blocked on resource queue\n");
+     free(blocked_on_resource_Q);
+    
+     printf("Free sorted time list\n");
+    free(sorted_timeout_lst);
+    
+    printf("Free RPQ\n");
+    free(rpq);
+   
+   // printf("Free in_mem_ptr and out_mem_ptr pointers\n");
+   // free(in_mem_ptr); //Freeing these two pointers results an error message; aren't they already freed by munmap? 
+   // free(out_mem_ptr);
+    
+    printf("Free created PCBs (pcb_pointer_tracker\n");
+    i=0;
+    for (i; i < 3; i++) {//*******8 for full implementation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        free(pcb_pointer_tracker[i]);
+	printf("%i\n",i);
+    }   
+
+   //printf("Free mmap_ptr\n");
+   //free(mmap_ptr); Isn't the content that this guy points to already have been freed by mumap?
+   
+   // free(input_filename);DID WE MALLOC THIS?
+   // free(output_filename);
+   
+ //   printf("Free current process pointer\n");
+//    free(current_process); //Freed already?
+
+    kill(getpid(), SIGINT); 
+    exit(0);	
+    return retCode;
 }
 
 int k_send_console_chars(msg_envelope *message_envelope)
