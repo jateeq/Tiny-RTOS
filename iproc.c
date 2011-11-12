@@ -15,24 +15,11 @@ updated october 23, 2011
 #include "kernelAPI.h"
 
 void kb_iproc(){
-/*wat the hell? dont think this is needed. 
-    msg_envelope * msg = (msg_envelope *)k_receive_message();
-    msg_queue * cur_msg_queue = &(current_process->msg_envelope_q);
-    if (msg!= NULL)
-    {
-        //enqueue the message onto the local queue     
-        msg_enqueue( msg , cur_msg_queue);
-    }
-*/	
-	//THIS IS VERY BAD BECAUSE IT CHANGES CURRENT PROCESS MANUALLY AND DOES, MUST BE CHANGED
-	    int n = NUM_OF_IPROC;
-	    int t = IPROC_KBD; 
-	    int i;
-	    
-	    for (i=0;i<n;i++)
-	    //use dest_id to look up the target process PCB pointer
+	//THIS IS VERY BAD BECAUSE IT CHANGES CURRENT PROCESS MANUALLY AND DOES, MUST BE CHANGED	    	    
+	    int i;	    
+	    for (i=0;i<NUM_OF_IPROC;i++) //use dest_id to look up the target process PCB pointer
 	    {
-		if (t == pcb_pointer_tracker[i]->process_id)
+		if (IPROC_KBD == pcb_pointer_tracker[i]->process_id)
 		    current_process = pcb_pointer_tracker[i];
 	    }
 
@@ -40,14 +27,12 @@ void kb_iproc(){
 	printf("kb_iproc msg_queue size: %i\n", current_process->msg_envelope_q.size); 
 	printf("current executing proc id (should be KB): %i\n", current_process->process_id); 
 	fflush(stdout);
-	
-	//msg_envelope * msg_env = (msg_envelope *)k_request_msg_env();
+		
 
 	msg_envelope * msg_env = (msg_envelope *)k_receive_message(); 
 
 	while (msg_env == NULL) {
-	    usleep(1000000);	
-	    //msg_env = (msg_envelope *) k_receive_message;
+	    usleep(1000000);		    
 	}	
 
 	if( msg_env != NULL)
@@ -68,75 +53,38 @@ void kb_iproc(){
 				fflush(stdout);
 				in_mem_ptr->flag = 0;
 				printf("KBD_IPROC: copying contents into message to be sent to process P\n"); fflush		(stdout);				
-				int count = 0;
-//printf("KBD_IPROC: sending message to process p"); fflush(stdout);				
-				//int proc_p = PROC_P;k_send_message(proc_p, msg_env);					
+				int count = 0;										
 				for(count;count<in_mem_ptr->input_count;count++)
 				{
 					msg_env->msg_text[count] = in_mem_ptr->input_data[count];
 				}
 				msg_env->msg_size = in_mem_ptr->input_count;
-				in_mem_ptr->input_count = 0;
-				//strcpy(msg_env->msg_text,in_mem_ptr->input_data);
-				int proc_p = PROC_P; 		
+				in_mem_ptr->input_count = 0;								
 				printf("KBD_IPROC: sending message to process p"); fflush(stdout);				
-				k_send_message(proc_p, msg_env);
+				k_send_message(PROC_P, msg_env);
 			}		
 		}
+	}               
+	for (i=0;i<TOTAL_PARTIALIMP_PROC;i++)
+	{
+	if (PROC_P == pcb_pointer_tracker[i]->process_id)
+		current_process = pcb_pointer_tracker[i];
 	}
-
-        n = 3;
-        t = PROC_P;
-        for (i=0;i<n;i++)
-        {
-        if (t == pcb_pointer_tracker[i]->process_id)
-            current_process = pcb_pointer_tracker[i];
-        }
- 
-
-/* this is not not needed
-    else        //the message queue is empty
-    { 
-        current_process->process_state = "idle";
-    }
-*/
-
-	/*this is for testing only
-    input_buffer command;
-    if (in_mem_ptr->input_count != 0)
-    {
-        strcpy(command.input_data, in_mem_ptr->input_data);
-        printf("Keyboard input was: %s\n", command.input_data);
-        in_mem_ptr->flag = 0;
-	in_mem_ptr->input_count = 0;
-    }
-*/
 }
 
 void crt_iproc()
 {
 	//set current process
-	int i;
-	int n = 3;
-	int t = IPROC_CRT;
-	for (i=0;i<n;i++)
+	int i;		
+	for (i=0;i<TOTAL_PARTIALIMP_PROC;i++)
 	{
-	if (t == pcb_pointer_tracker[i]->process_id)
+	if (IPROC_CRT == pcb_pointer_tracker[i]->process_id)
 	    current_process = pcb_pointer_tracker[i];
 	}
 
-	msg_envelope * msg;
-	int proc_p_pid; 
+	msg_envelope * msg; 
 	int error_code;
-
-	msg = (msg_envelope *) k_receive_message();
-   
-	/* we shouldn't try to keep getting message. instead, CRT process will signal and invoke repeatedly
-	while (msg == NULL)
-	{
-		usleep(100000); 
-		msg = (msg_envelope *) k_receive_message(); 
-	} */
+	msg = (msg_envelope *) k_receive_message();   
 
 	if (msg != NULL) {
 
@@ -148,9 +96,7 @@ void crt_iproc()
 			usleep(100000);
 		}
 
-		//fill buffer
-		//strcpy(out_mem_ptr->output_data, msg->msg_text); //Fix 
-		//out_mem_ptr->output_count = sizeof(msg->msg_text);
+		//fill buffer		
 		int count = 0;
 		printf("CRT IPROC: Copying %i characters.\n", msg->msg_size);
 		for(count; count < msg->msg_size; count++)
@@ -164,27 +110,21 @@ void crt_iproc()
 		{
 			usleep(100000);
 		}
-		//send confirmation message to invoking process
-		proc_p_pid = PROC_P;
+		//send confirmation message to invoking process		
 		msg->receiver_pid = msg->sender_pid;
 		msg->sender_pid = current_process->process_id; 
 		msg->msg_type = DISPLAY_ACK;
-		error_code = k_send_message(proc_p_pid, msg);
+		error_code = k_send_message(PROC_P, msg);
 		fflush(stdout);
 		printf("Signal from CRT has been received. Acknowledgment sent back to process P\n");
 		fflush(stdout);
-	} else {
-		//fflush(stdout);
-		//printf("Waiting for message from process P\n");
-		//fflush(stdout);
+	} else {		
 	}
 
-	//change current process back to Proc_P
-	n = 3;
-	t = PROC_P;
-	for (i=0;i<n;i++)
+	//change current process back to Proc_P	
+	for (i=0;i<TOTAL_PARTIALIMP_PROC;i++)
 	{
-	if (t == pcb_pointer_tracker[i]->process_id)
+	if (PROC_P == pcb_pointer_tracker[i]->process_id)
 	    current_process = pcb_pointer_tracker[i];
 	}
     return; 
@@ -192,41 +132,26 @@ void crt_iproc()
 
 void timer_iproc()
 {
-    printf("I'm not doing naythign");
+    printf("TIMER_IPROC: invoked");
 }
 
 void signal_handler(int signum)
-{
-    //save the context of the currently running process
-    //PCB* tempPCB;
-/*
-    RTX * tempRTX = (RTX *)malloc(sizeof(RTX));
-*/			
-    //tempPCB = (PCB *)malloc(sizeof(PCB));
-   // if (tempPCB != NULL)
-  //  {
-         //   tempPCB = current_process;
-            switch(signum)
-            {
-                    case SIGINT: 
-                            k_terminate();
-                            break;
-                    case SIGALRM:
-             //               timer_iproc(signum);
-                            break;
-                    case SIGUSR1: // kb handler
-                            kb_iproc();
-                            break;
-
-                    case SIGUSR2: // crt handler
-                            crt_iproc();
-                            break;
-            }	
-            //current_process = tempPCB;
-         //   free(tempPCB);
-/*
-            process_switch();//call the scheduler
-*/
+{    
+	switch(signum)
+	{
+			case SIGINT: 
+					k_terminate();
+					break;
+			case SIGALRM:
+	                //timer_iproc(signum);
+					break;
+			case SIGUSR1: // kb handler
+					kb_iproc();
+					break;
+			case SIGUSR2: // crt handler
+					crt_iproc();
+					break;
+	}	
     
 }
 
