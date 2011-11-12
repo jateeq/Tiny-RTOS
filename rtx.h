@@ -22,6 +22,7 @@ extern "C" {
 #define NUM_OF_PROC 8
 #define NUM_OF_USER_PROC 5
 #define NUM_OF_IPROC 3
+#define TOTAL_PARTIALIMP_PROC 3
 
 //Process IDs
 #define PROC_A 0
