@@ -1,6 +1,7 @@
 /*Updated on November 05 2011*/
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "rtx.h"
 #include <signal.h>
 #include "kernelAPI.h"
@@ -9,25 +10,27 @@
 void atomic(int on) {
     static sigset_t oldmask;
     sigset_t newmask;
-    if (on) {
-    sigemptyset(&newmask);
-    sigaddset(&newmask, SIGALRM); //the alarm signal
-    sigaddset(&newmask, SIGINT); // the CNTRL-C
-    sigaddset(&newmask, SIGUSR1); // the CRT signal
-    sigaddset(&newmask, SIGUSR2); // the KB signal
-    sigprocmask(SIG_BLOCK, &newmask, &oldmask);
-    }  else {
-    //unblock the signals
-    sigprocmask(SIG_SETMASK, &oldmask, NULL);
+    if (on) {		
+		sigemptyset(&newmask);
+		sigaddset(&newmask, SIGALRM); //the alarm signal
+		sigaddset(&newmask, SIGINT); // the CNTRL-C
+		sigaddset(&newmask, SIGUSR1); // the KB signal
+		sigaddset(&newmask, SIGUSR2); // the CRT signal
+		sigprocmask(SIG_BLOCK, &newmask, &oldmask);			
+    }  
+	else 
+	{		
+		//unblock the signals
+		sigprocmask(SIG_SETMASK, &oldmask, NULL);
     }
 }
 
 int terminate()
 {
-	int retCode = 0;
-	atomic(ON);
-	retCode = k_terminate();
-	atomic(OFF);
+	int retCode = 0;	
+	atomic(ON);	
+	retCode = k_terminate();	
+	atomic(OFF);	
 	return retCode;
 }
 
