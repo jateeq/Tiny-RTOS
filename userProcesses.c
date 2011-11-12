@@ -46,24 +46,22 @@ void processP()
 		env = (msg_envelope *) receive_message();//change this to userAPI call later
 
 		while (env == NULL) {
-			//fflush(stdout);
-			//printf("ProcessP going to sleep.\n");
-			usleep(tWait);
-		//	printf("P: calling receive..2\n");					
+			usleep(tWait);					
 			env = (msg_envelope *) receive_message();
 			if (env != NULL) {
 			   fflush(stdout);
 			   printf("Message received from the KBD\n");		
 			}
 		}
-/* for testing only*/
-                int i = 0;
+		
+		/* for testing only*/
+        int i = 0;
 
 		fflush(stdout);
 		printf("\nthe message from keyboard was: "); 
                 for (i=0; i<sizeof(env->msg_text); i++)
                 {
-                        printf("%c", env->msg_text[i]); 
+                    printf("%c", env->msg_text[i]); 
                 }
 		fflush(stdout);
 		//do we have to check if the message type is output envelope?
@@ -76,8 +74,7 @@ void processP()
 		while (env == NULL) {
 			usleep (tWait);
 			env = (msg_envelope *) receive_message();
-		}
-		//Yifei Addition:
+		}		
 		release_msg_env(env);
 	}
 
