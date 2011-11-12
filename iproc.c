@@ -65,7 +65,7 @@ void kb_iproc(){
 			}		
 		}
 	}               
-	for (i=0;i<TOTAL_PARTIALIMP_PROC;i++)
+	for (i=0;i<NUM_TOTAL_PROC;i++)
 	{
 	if (PROC_P == pcb_pointer_tracker[i]->process_id)
 		current_process = pcb_pointer_tracker[i];
@@ -76,7 +76,7 @@ void crt_iproc()
 {
 	//set current process
 	int i;		
-	for (i=0;i<TOTAL_PARTIALIMP_PROC;i++)
+	for (i=0;i<NUM_TOTAL_PROC;i++)
 	{
 	if (IPROC_CRT == pcb_pointer_tracker[i]->process_id)
 	    current_process = pcb_pointer_tracker[i];
@@ -122,7 +122,7 @@ void crt_iproc()
 	}
 
 	//change current process back to Proc_P	
-	for (i=0;i<TOTAL_PARTIALIMP_PROC;i++)
+	for (i=0;i<NUM_TOTAL_PROC;i++)
 	{
 	if (PROC_P == pcb_pointer_tracker[i]->process_id)
 	    current_process = pcb_pointer_tracker[i];
