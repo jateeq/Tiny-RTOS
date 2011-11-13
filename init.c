@@ -11,6 +11,7 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "rtx.h"
 
 int PROC_A_PRIORITY = 	MEDIUM;
 int PROC_B_PRIORITY = MEDIUM;
@@ -23,16 +24,14 @@ int IPROC_CRT_PRIORITY = IPROCESS;
 int IPROC_TIMER_PRIORITY = IPROCESS;
 int PROC_NULL_PRIORITY = LOW; 
 
-int size_of_stack = 4096; 
 initialization_table init_table[8]; //Declare an array of initialization_table
-int stack_offset = 8;
 char *jmpsp;
 jmp_buf kernel_buf;
 
 int initialize_data() {
    int i;
    
-   for (i = 0; i < 3; i++) {
+   for (i = 0; i < NUM_TOTAL_PROC; i++) {
 	pcb_pointer_tracker[i] = NULL;
    }
 
@@ -46,7 +45,7 @@ int initialize_data() {
    free_env_Q->head = NULL;
    free_env_Q->tail = NULL;
    
-   for (i = 0; i < 60; i ++) {
+   for (i = 0; i < NUM_MSG_ENV; i ++) {
        msg_envelope *temp_envelope = (msg_envelope *) malloc(sizeof(msg_envelope));
        temp_envelope->msg_size = 0;
        msg_enqueue(temp_envelope, free_env_Q);
@@ -54,7 +53,7 @@ int initialize_data() {
    
    rpq  = (ready_process_queue *) malloc(sizeof(ready_process_queue)); //Allocate memory for rpq
 
-   for (i = 0; i < 4; i++) {
+   for (i = 0; i < PCB_QUEUE_COUNT; i++) {
        rpq->pq_array[i] = (PCB_queue *) malloc(sizeof(PCB_queue));
        rpq->pq_array[i]->head = NULL;
        rpq->pq_array[i]->tail = NULL;
@@ -67,50 +66,50 @@ int initialize_data() {
 
 void initialize_IT() {
 	/*User processes*/ 
-        init_table[0].process_id = PROC_P;
+    init_table[0].process_id = PROC_P;
 	init_table[0].process_priority = PROC_P_PRIORITY;
-	init_table[0].stack_size = size_of_stack ;
-        init_table[0].initial_pc = (void*) processP;
+	init_table[0].stack_size = STACK_SIZE ;
+    init_table[0].initial_pc = (void*) processP;
         
-        init_table[1].process_id = IPROC_KBD;
+    init_table[1].process_id = IPROC_KBD;
 	init_table[1].process_priority = IPROCESS;
-	init_table[1].stack_size = size_of_stack;
+	init_table[1].stack_size = STACK_SIZE;
 	init_table[1].initial_pc = (void*) kb_iproc;
 
 	init_table[2].process_id = IPROC_CRT;
 	init_table[2].process_priority = IPROCESS;
-	init_table[2].stack_size = size_of_stack;
+	init_table[2].stack_size = STACK_SIZE;
 	init_table[2].initial_pc = (void*) crt_iproc;
         
         /*
         init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
-	init_table[0].stack_size = size_of_stack ;
+	init_table[0].stack_size = STACK_SIZE ;
         init_table[0].initial_pc = (void*) process_A;
 
 	init_table[1].process_id = PROC_B;
 	init_table[1].process_priority = PROC_B_PRIORITY;
-        init_table[1].stack_size = size_of_stack;
+        init_table[1].stack_size = STACK_SIZE;
 	init_table[1].initial_pc = (void*) process_B;
 	
 	init_table[2].process_id = PROC_C;
 	init_table[2].process_priority = PROC_C_PRIORITY;
-	init_table[2].stack_size = size_of_stack;
+	init_table[2].stack_size = STACK_SIZE;
 	init_table[2].initial_pc = (void*) process_C;
 
 	init_table[3].process_id = PROC_CCI;
 	init_table[3].process_priority = PROC_CCI_PRIORITY;
-	init_table[3].stack_size = size_of_stack;
+	init_table[3].stack_size = STACK_SIZE;
 	init_table[3].initial_pc = (void*) process_CCI;
 
 	init_table[4].process_id = PROC_NULL;
 	init_table[4].process_priority = PROC_NULL_PRIORITY;
-	init_table[4].stack_size = size_of_stack;
+	init_table[4].stack_size = STACK_SIZE;
 	init_table[4].initial_pc = (void*) process_NULL;
 
 	init_table[4].process_id = PROC_CLK;
 	init_table[4].process_priority = PROC_NULL_PRIORITY;
-	init_table[4].stack_size = size_of_stack;
+	init_table[4].stack_size = STACK_SIZE;
 	init_table[4].initial_pc = (void*) process_CLK;
 	/**/
 
@@ -118,17 +117,17 @@ void initialize_IT() {
 	/*
         init_table[5].process_id = IPROC_TIMER;
 	init_table[5].process_priority = IPROCESS;
-	init_table[5].stack_size = size_of_stack;
+	init_table[5].stack_size = STACK_SIZE;
         init_table[5].initial_pc = (void*) timer_iproc;
         *
 	init_table[6].process_id = IPROC_KBD;
 	init_table[6].process_priority = IPROCESS;
-	init_table[6].stack_size = size_of_stack;
+	init_table[6].stack_size = STACK_SIZE;
 	init_table[6].initial_pc = (void*) kb_iproc;
 
 	init_table[7].process_id = IPROC_CRT;
 	init_table[7].process_priority = IPROCESS;
-	init_table[7].stack_size = size_of_stack;
+	init_table[7].stack_size = STACK_SIZE;
 	init_table[7].initial_pc = (void*) crt_iproc;
 	/**/
 }
@@ -136,61 +135,55 @@ void initialize_IT() {
 int initialize_process() {
     int i;
 
-    for (i = 0; i < 1; i++) {
-            pcb_pointer_tracker[i] = (PCB *)malloc(sizeof(PCB));
+    for (i = 0; i < NUM_OF_USER_PROC; i++) {
+		pcb_pointer_tracker[i] = (PCB *)malloc(sizeof(PCB));
 
-            if (pcb_pointer_tracker[i] == NULL) {
-                    return ERROR_FAIL_TO_MALLOC;
-            }
+		if (pcb_pointer_tracker[i] == NULL) {
+				return ERROR_FAIL_TO_MALLOC;
+		}
 
-            pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
-            pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
+		pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
+		pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
 
-            char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + size_of_stack - stack_offset;
-            if (stack_temp == NULL) {
-                    return ERROR_FAIL_TO_MALLOC;
-            }
+		char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + STACK_SIZE - STACK_OFFSET;
+		if (stack_temp == NULL) {
+				return ERROR_FAIL_TO_MALLOC;
+		}
 
-	    //printf("sp ok");
+		pcb_pointer_tracker[i]->process_stack = stack_temp;
+		pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
+		pcb_pointer_tracker[i]->process_state = READY;
+		pcb_pointer_tracker[i]->previous = NULL;
+		pcb_pointer_tracker[i]->next = NULL;
+		pcb_pointer_tracker[i]->msg_envelope_q.head = NULL;
+		pcb_pointer_tracker[i]->msg_envelope_q.tail = NULL;
 
-            pcb_pointer_tracker[i]->process_stack = stack_temp;
-            pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
-            pcb_pointer_tracker[i]->process_state = READY;
-            pcb_pointer_tracker[i]->previous = NULL;
-            pcb_pointer_tracker[i]->next = NULL;
-            pcb_pointer_tracker[i]->msg_envelope_q.head = NULL;
-            pcb_pointer_tracker[i]->msg_envelope_q.tail = NULL;
+		jmp_buf *temp_context = (jmp_buf *) malloc(sizeof(jmp_buf));
+		if (temp_context == NULL) {
+				return ERROR_FAIL_TO_MALLOC;
+		}
 
-            jmp_buf *temp_context = (jmp_buf *) malloc(sizeof(jmp_buf));
-            if (temp_context == NULL) {
-                    return ERROR_FAIL_TO_MALLOC;
-            }
+		pcb_pointer_tracker[i]->context = temp_context;
+		rpq_enqueue(pcb_pointer_tracker[i]);
 
-	    //printf("jmp_buf ok");
+		current_process = pcb_pointer_tracker[i];
 
-            pcb_pointer_tracker[i]->context = temp_context;
-            rpq_enqueue(pcb_pointer_tracker[i]);
+		if  (setjmp (kernel_buf) == 0) {
+			jmpsp = pcb_pointer_tracker[i]->process_stack;
+			__asm__ ("movl %0,%%esp" :"=m" (jmpsp));
 
-            current_process = pcb_pointer_tracker[i];
+			//_set_sp(jmpsp);
 
-            if  (setjmp (kernel_buf) == 0) {
-                    jmpsp = pcb_pointer_tracker[i]->process_stack;
-                    __asm__ ("movl %0,%%esp" :"=m" (jmpsp));
-
-                    //_set_sp(jmpsp);
-
-                    if (setjmp (*pcb_pointer_tracker[i]->context) ==0){
-                            longjmp (kernel_buf, 1);
-                    } else {
-                            current_process->process_state = EXECUTING;
-                            current_process->initial_pc();
-                    }
-            }
-
-	    //printf("setjmp ok");
+			if (setjmp (*pcb_pointer_tracker[i]->context) ==0){
+					longjmp (kernel_buf, 1);
+			} else {
+					current_process->process_state = EXECUTING;
+					current_process->initial_pc();
+			}
+		}	   
     }
 
-    for (i = 1; i < 3; i++) {
+    for (i = 1; i < NUM_TOTAL_PROC; i++) {
             pcb_pointer_tracker[i] = (PCB *) malloc(sizeof(PCB));
 
             if (pcb_pointer_tracker[i] == NULL) {
@@ -200,7 +193,7 @@ int initialize_process() {
             pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
             pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
 
-            char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + stack_offset;
+            char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + STACK_OFFSET;
             if (stack_temp == NULL) {
                     return ERROR_FAIL_TO_MALLOC;
             }

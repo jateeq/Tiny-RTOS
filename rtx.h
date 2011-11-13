@@ -20,7 +20,7 @@ extern "C" {
 /*Constants*/
 //RTX Processes
 #define NUM_OF_PROC 8
-#define NUM_OF_USER_PROC 5
+#define NUM_OF_USER_PROC 1
 #define NUM_OF_IPROC 3
 #define NUM_TOTAL_PROC 3 //change this to 8 for full implementation
 
@@ -87,6 +87,11 @@ extern "C" {
     
 //Buffer Size for TX and RX:
 #define BUFFER_SIZE 128 //bytes
+
+#define NUM_MSG_ENV 60
+#define PCB_QUEUE_COUNT 4
+#define STACK_SIZE 4096
+#define STACK_OFFSET 8
 /**/
 
 /*RTX objects*/
