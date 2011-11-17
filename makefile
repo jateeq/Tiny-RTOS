@@ -1,49 +1,45 @@
-all: build/rtx_main build/keyboard build/crt
 
-build/rtx_main: rtx_main.o init.o iproc.o kernelAPI.o  userAPI.o queue.o userProcesses.o 
-	gcc -g -lrt -o rtx_main rtx_main.o init.o iproc.o kernelAPI.o userAPI.o queue.o userProcesses.o 
+builddir = ./build
+srcdir = ./src
+CC = gcc
+CCFLAGS = -g
 
-build/keyboard: keyboard.o
-	gcc -g -lrt -o keyboard keyboard.o
+iRTX-G19: keyboard crt rtx
 
-build/crt: crt.o 
-	gcc -g -lrt -o crt crt.o 
-
-build/rtx_main.o : rtx_main.c rtx.h  init.c queue.c kernelAPI.c  kernelAPI.c iproc.c
-	gcc -g -c rtx_main.c
-
-build/iproc.o : iproc.c rtx.h queue.c kernelAPI.c 	
-	gcc -g -c iproc.c
-
-build/init.o :init.c queue.c iproc.c userProcesses.c 
-	gcc -g -c init.c
- 
-build/kernelAPI.o : kernelAPI.c rtx.h queue.c init.c userProcesses.c
-	gcc -g -c kernelAPI.c
-
-build/crt.o : crt.c init.c iproc.c queue.c userProcesses.c
-	gcc -g -c crt.c
-
-build/keyboard.o : keyboard.c rtx.h queue.c 
-	gcc -g -c keyboard.c
-
-build/userAPI.o : userAPI.c kernelAPI.c rtx.h
-	gcc -g -c userAPI.c
-
-build/queue.o : queue.c queue.h
-	gcc -g -c queue.c
-
-build/userProcesses.o : userProcesses.c userAPI.c
-	gcc -g -c userProcesses.c
+rtx: rtx.o	
+	$(CC) -g -lrt -o $(builddir)/rtx \
+	$(builddir)/kernelAPI.o \
+	$(builddir)/rtx_main.o \
+	$(builddir)/init.o \
+	$(builddir)/queue.o \
+	$(builddir)/iproc.o \
+	$(builddir)/userProcesses.o \
+	$(builddir)/userAPI.o \
 	
-#clean:
-#	build/rtx_main.o build/init.o build/iproc.o build/kernelAPI.o build/crt.o build/keyboard.o build/userAPI.o build/queue.o build/userProcesses.o build/rtx_main build/keyboard build/crt 
+rtx.o:
+	$(CC) $(CCFLAGS) -c  $(srcdir)/rtx_main.c -o $(builddir)/rtx_main.o
+	$(CC) $(CCFLAGS) -c  $(srcdir)/init.c -o $(builddir)/init.o
+	$(CC) $(CCFLAGS) -c  $(srcdir)/queue.c -o $(builddir)/queue.o
+	$(CC) $(CCFLAGS) -c  $(srcdir)/iproc.c -o $(builddir)/iproc.o
+	$(CC) $(CCFLAGS) -c  $(srcdir)/userProcesses.c -o $(builddir)/userProcesses.o
+	$(CC) $(CCFLAGS) -c  $(srcdir)/userAPI.c -o $(builddir)/userAPI.o
+	$(CC) $(CCFLAGS) -c  $(srcdir)/kernelAPI.c -o $(builddir)/kernelAPI.o
 
-#clean:
-#	rtx_main.o init.o iproc.o kernelAPI.o crt.o keyboard.o userAPI.o queue.o userProcesses.o rtx_main keyboard crt 
+keyboard: keyboard.o
+	$(CC) -g -lrt -o $(builddir)/keyboard $(builddir)/keyboard.o
 
+keyboard.o: 
+	$(CC) $(CCFLAGS) -c $(srcdir)/keyboard.c -o $(builddir)/keyboard.o
+
+crt: crt.o
+	$(CC) -g -lrt -o $(builddir)/crt $(builddir)/crt.o
+
+crt.o:
+	$(CC) $(CCFLAGS) -c $(srcdir)/crt.c -o $(builddir)/crt.o
+	
 clean:
-	rm -r *.o
-	rm in_buf
-	rm out_buf
-	rm crt rtx_main keyboard
+	rm -r -f $(builddir)/*
+
+
+
+
