@@ -16,6 +16,8 @@ msg_envelope * request_msg_env();
 int send_console_chars(msg_envelope *env);
 int send_message ( int dest_process_id, msg_envelope * message_envelope );
 int release_msg_env(msg_envelope * msg);
+int release_processor();
+int request_process_status(msg_envelope* env);
 void atomic(int on);
 void process_switch();
 void context_swtich(jmp_buf *previous, jmp_buf *next);

@@ -108,7 +108,7 @@ void initialize_IT() {
 	init_table[4].initial_pc = (void*) process_NULL;
 
 	init_table[4].process_id = PROC_CLK;
-	init_table[4].process_priority = PROC_NULL_PRIORITY;
+	init_table[4].process_priority = PROC_CLK_PRIORITY;
 	init_table[4].stack_size = STACK_SIZE;
 	init_table[4].initial_pc = (void*) process_CLK;
 	/**/

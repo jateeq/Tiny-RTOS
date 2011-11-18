@@ -3,6 +3,7 @@
 
 #include "userProcesses.h"
 #include "userAPI.h"
+#include "rtx.h"
 
 void process_A() {
     
@@ -24,8 +25,85 @@ void process_NULL() {
     
 }
 
-void process_CLK() {
-    
+void wall_clock() {
+
+	//this section is only going to run once during the lifetime of the rtx
+    int time = 0;
+	int clock_status = OFF;
+	int count = 0;	
+	int awake = 1;
+	char* command;
+	char* command_data;
+	
+	//this section should run forever once all variables have been initialized
+	do {	
+		//message_envelope * msg = malloc(sizeof(message_envelope));
+		//msg = receive_message();
+		
+		//expecting messages only from the CCI at this point
+		
+		//parse the message text to get the command and other data out
+		
+		if (msg != NULL)
+		{
+			int i = 0;
+			
+			//get the command entered by user
+			for(i;i<3;i++)
+				command = msg->text[i];
+			
+			//get the time specified by the user
+			if (command == " c")
+			{
+				for(i;i<5;i++)
+					command_data = msg->msg_text[i];
+					
+				//parse the data to extract hours, minutes and seconds
+			}
+			
+			if ()
+			switch(msg->msg_text)
+			{
+				case 'c': 	//set wall clock time
+					time = command_data;
+					break;
+				case 'cd': 	//turn wall clock display on
+					clock_status = ON;
+					break;
+				case 'ct': 	//turn wall clock display off
+					clock_status =  OFF;
+					break;
+				default:
+					//printf("WALL_CLOCK: unrecognized message text"); fflush(stdout);
+					break;
+			}
+		}
+		
+		if (clock_status == ON)
+			//display wall clock
+		
+		//request a message envelope to send message to timing service
+		//what if it takes a very long time - approx 1s - to get a message? our clock will not be up to date
+		msg = NULL;
+		while(msg == NULL)
+			msg = request_msg_env();
+
+		//need to change the time delay according to implementation in the timing service
+		request_delay(1000ms, WALL_CLK_WAKEUPCODE, msg);
+		awake = 0;
+		
+		while(!awake)
+			release_processor();
+		
+		//if we reach this point the process is awake again and one second has passed
+		awake = 1;
+		
+		//since it is critical that the wall clock have a message envelope on time, don't release the envelope
+		//requested and keep it reserved
+		
+	}while(awake); //at this line of code the process is always awake...so it always runs
+	
+	
 }
 
 void processP()

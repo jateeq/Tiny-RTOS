@@ -18,7 +18,7 @@ void process_C();
 void processP();
 void process_CCI();
 void process_NULL();
-void process_CLK();
+void wall_clock();
 
 #ifdef	__cplusplus
 }

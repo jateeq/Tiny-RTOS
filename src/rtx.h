@@ -38,6 +38,9 @@ extern "C" {
 //PROCP
 #define PROC_P 9
     
+//wakeup codes (unique for each process)
+#define WALL_CLK_WAKEUPCODE = 0;	
+	
 //Process priorities
 #define IPROCESS 0 //used for iprocesses
 #define High 1
