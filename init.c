@@ -1,5 +1,12 @@
+/*This project is a part of the uwaterloo - rtos mte 241 - fall 2011 course project for group 19
 
-/*Last updated on Nov 5 2011*/
+Authors:
+Bongkyun Park
+Yifei Cheng 
+Zhuojun Li
+Jawad Ateeq
+
+Last updated on Nov 5 2011*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,12 +73,12 @@ int initialize_data() {
 
 void initialize_IT() {
 	/*User processes*/ 
-    init_table[0].process_id = PROC_P;
+    	init_table[0].process_id = PROC_P;
 	init_table[0].process_priority = PROC_P_PRIORITY;
 	init_table[0].stack_size = STACK_SIZE ;
-    init_table[0].initial_pc = (void*) processP;
+	init_table[0].initial_pc = (void*) processP;
         
-    init_table[1].process_id = IPROC_KBD;
+    	init_table[1].process_id = IPROC_KBD;
 	init_table[1].process_priority = IPROCESS;
 	init_table[1].stack_size = STACK_SIZE;
 	init_table[1].initial_pc = (void*) kb_iproc;
@@ -81,7 +88,7 @@ void initialize_IT() {
 	init_table[2].stack_size = STACK_SIZE;
 	init_table[2].initial_pc = (void*) crt_iproc;
         
-        /*
+        /*user processes
         init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
 	init_table[0].stack_size = STACK_SIZE ;
@@ -150,30 +157,31 @@ int initialize_process() {
 				return ERROR_FAIL_TO_MALLOC;
 		}
 
-		pcb_pointer_tracker[i]->process_stack = stack_temp;
-		pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
-		pcb_pointer_tracker[i]->process_state = READY;
-		pcb_pointer_tracker[i]->previous = NULL;
-		pcb_pointer_tracker[i]->next = NULL;
-		pcb_pointer_tracker[i]->msg_envelope_q.head = NULL;
-		pcb_pointer_tracker[i]->msg_envelope_q.tail = NULL;
+            pcb_pointer_tracker[i]->process_stack = stack_temp;
+            pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
+            pcb_pointer_tracker[i]->process_state = READY;
+            pcb_pointer_tracker[i]->previous = NULL;
+            pcb_pointer_tracker[i]->next = NULL;
+            pcb_pointer_tracker[i]->msg_envelope_q.head = NULL;
+            pcb_pointer_tracker[i]->msg_envelope_q.tail = NULL;
 
-		jmp_buf *temp_context = (jmp_buf *) malloc(sizeof(jmp_buf));
-		if (temp_context == NULL) {
-				return ERROR_FAIL_TO_MALLOC;
-		}
+            jmp_buf *temp_context = (jmp_buf *) malloc(sizeof(jmp_buf));
+            if (temp_context == NULL) {
+                    return ERROR_FAIL_TO_MALLOC;
+	    }
+            pcb_pointer_tracker[i]->context = temp_context;
+            rpq_enqueue(pcb_pointer_tracker[i]);
 
-		pcb_pointer_tracker[i]->context = temp_context;
-		rpq_enqueue(pcb_pointer_tracker[i]);
+            current_process = pcb_pointer_tracker[i];
 
-		current_process = pcb_pointer_tracker[i];
-
-		if  (setjmp (kernel_buf) == 0) {
-			jmpsp = pcb_pointer_tracker[i]->process_stack;
-			__asm__ ("movl %0,%%esp" :"=m" (jmpsp));
-
-			//_set_sp(jmpsp);
-
+            if  (setjmp (kernel_buf) == 0) {
+                    jmpsp = pcb_pointer_tracker[i]->process_stack;
+#ifdef i386
+                    __asm__ ("movl %0,%%esp" :"=m" (jmpsp));
+#endif
+#ifdef __spqrc
+                   _set_sp(jmpsp);
+#endif
 			if (setjmp (*pcb_pointer_tracker[i]->context) ==0){
 					longjmp (kernel_buf, 1);
 			} else {
@@ -185,7 +193,7 @@ int initialize_process() {
 
     for (i = 1; i < NUM_TOTAL_PROC; i++) {
             pcb_pointer_tracker[i] = (PCB *) malloc(sizeof(PCB));
-
+    
             if (pcb_pointer_tracker[i] == NULL) {
                     return ERROR_FAIL_TO_MALLOC;
             }
@@ -235,16 +243,14 @@ int init_keyboard_process() {
      if (current_id == 0) { //Check if this is child process
          
          if (execl("./keyboard", "keyboard" ,arg_for_child1, arg_for_child2, NULL ) == -1) { // execute keyboard process and pass in the pid and fid. 
-             printf("Error in creating keyboard child process\n");
-             exit(1);
+             exit(0);
          }
      } else {
         //Parent process continues to create input memory map
         mmap_ptr = mmap((caddr_t) 0, 512, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
- 	childpid[0]=current_id; //termination
+ 	childpid[0]=current_id; //For termination
         if (mmap_ptr == NULL) {
-            printf("Error: Failed at creating memory map. Exiting...\n");
-            // k_terminate();
+             exit(0);
         }
 
         in_mem_ptr = (input_buffer *) mmap_ptr; //Standard C RX memory map pointer
@@ -259,7 +265,7 @@ int init_keyboard_process() {
 int init_crt_process() { 
     output_filename = "out_buf";
     int fid = open(output_filename, O_RDWR | O_CREAT | O_EXCL,  (mode_t) 0755); //Create out  buffer file
-    fileid[1] = fid; //termination
+    fileid[1] = fid; //For termination
     ftruncate(fid, 128); //Making the size of the file the same as the buffer
     int pid = getpid(); // parent id to pass on to keyboard process
        
@@ -272,16 +278,14 @@ int init_crt_process() {
      int current_id = fork(); //Create kbd child process 	 	 
      if (current_id ==0) { //Check if this is child process
          execl("./crt", "crt", arg_for_child1, arg_for_child2, NULL); // execute keyboard pocess and pass in the pid and fid.
-	 printf("Error in creating crt child process"); 
 	}
     
     childpid[1]=current_id; //termination
     //Parent process continues to create output memory map
     mmap_ptr = mmap((caddr_t) 0, 128, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
 	
-	if (mmap_ptr == NULL) {
-      	printf("Error: Failed at creating memory map. Exiting...\n");
-      //  k_terminate(); //Clean up and terminate
+    if (mmap_ptr == NULL) {
+        exit(0);
     }
 	
     out_mem_ptr = (output_buffer *) mmap_ptr; //Standard C TX memory map pointer
@@ -290,6 +294,7 @@ int init_crt_process() {
     
     return SUCCESS;
 }
+
 
 
 
