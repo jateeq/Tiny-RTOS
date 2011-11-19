@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*This project is a part of the uwaterloo - rtos mte 241 - fall 2011 course project for group 19
 
 Authors:

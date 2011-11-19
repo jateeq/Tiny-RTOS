@@ -51,7 +51,7 @@ void process_NULL()
     }
     return;
 }
-/*
+
 void wall_clock() {
 
 	//this section is only going to run once during the lifetime of the rtx
@@ -132,7 +132,7 @@ void wall_clock() {
 	
 	
 }
-*/
+
 void processP()
 {
 	const int tWait = 500000; //rcv loop wait time in usec, approx value
