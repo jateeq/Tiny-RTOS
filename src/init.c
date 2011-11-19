@@ -42,10 +42,12 @@ int initialize_data() {
 	pcb_pointer_tracker[i] = NULL;
    }
 
-   blocked_on_resource_Q =  (PCB_queue *) malloc(sizeof(PCB_queue)); //Allocate memory for
+   blocked_on_resource_Q =  (PCB_queue *) malloc(sizeof(PCB_queue)); //Allocate memory for blocked on resource Q
    
    blocked_on_resource_Q->head = NULL;
    blocked_on_resource_Q->tail = NULL;
+
+   sorted_timeout_list = (msg_queue *) malloc(sizeof(msg_queue)); //Allocate memory for timeout list queue
 
    free_env_Q = (msg_queue *) malloc(sizeof(msg_queue)); //Allocate memory for free_env_q 
 
@@ -66,6 +68,8 @@ int initialize_data() {
        rpq->pq_array[i]->tail = NULL;
    }
 
+   kernel_clock = 0;
+
    initialize_IT();
    
    return SUCCESS;
@@ -75,7 +79,7 @@ void initialize_IT() {
 	/*User processes*/ 
     	init_table[0].process_id = PROC_P;
 	init_table[0].process_priority = PROC_P_PRIORITY;
-	init_table[0].stack_size = STACK_SIZE ;
+	init_table[0].stack_size = STACK_SIZE;
 	init_table[0].initial_pc = (void*) processP;
         
     	init_table[1].process_id = IPROC_KBD;
@@ -88,6 +92,11 @@ void initialize_IT() {
 	init_table[2].stack_size = STACK_SIZE;
 	init_table[2].initial_pc = (void*) crt_iproc;
         
+        init_table[3].process_id = IPROC_TIMER;
+	init_table[3].process_priority = IPROCESS;
+	init_table[3].stack_size = STACK_SIZE;
+        init_table[3].initial_pc = (void*) timer_iproc;
+
         /*user processes
         init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
@@ -126,7 +135,7 @@ void initialize_IT() {
 	init_table[5].process_priority = IPROCESS;
 	init_table[5].stack_size = STACK_SIZE;
         init_table[5].initial_pc = (void*) timer_iproc;
-        *
+        
 	init_table[6].process_id = IPROC_KBD;
 	init_table[6].process_priority = IPROCESS;
 	init_table[6].stack_size = STACK_SIZE;
@@ -226,11 +235,11 @@ int initialize_process() {
 }
 
 int init_keyboard_process() {
-    input_filename = "in_buf";
+    input_filename = "./build/in_buf";
 
     int fid = open(input_filename, O_RDWR | O_CREAT | O_EXCL,  (mode_t) 0755); //Create input buffer file
     fileid[0] = fid; //termination
-    ftruncate(fid, 256); //Making the size of the file the same as the buffer
+    ftruncate(fid, BUFFER_SIZE*2); //Making the size of the file the same as the buffer
     int pid = getpid(); // parent id to pass on to keyboard process
      
      char arg_for_child1 [20];
@@ -247,7 +256,7 @@ int init_keyboard_process() {
          }
      } else {
         //Parent process continues to create input memory map
-        mmap_ptr = mmap((caddr_t) 0, 512, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
+        mmap_ptr = mmap((caddr_t) 0, BUFFER_SIZE*2, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
  	childpid[0]=current_id; //For termination
         if (mmap_ptr == NULL) {
              exit(0);
@@ -263,10 +272,10 @@ int init_keyboard_process() {
 }
 
 int init_crt_process() { 
-    output_filename = "out_buf";
+    output_filename = "./build/out_buf";
     int fid = open(output_filename, O_RDWR | O_CREAT | O_EXCL,  (mode_t) 0755); //Create out  buffer file
     fileid[1] = fid; //For termination
-    ftruncate(fid, 128); //Making the size of the file the same as the buffer
+    ftruncate(fid, BUFFER_SIZE*2); //Making the size of the file the same as the buffer
     int pid = getpid(); // parent id to pass on to keyboard process
        
      char arg_for_child1 [20];
@@ -282,7 +291,7 @@ int init_crt_process() {
     
     childpid[1]=current_id; //termination
     //Parent process continues to create output memory map
-    mmap_ptr = mmap((caddr_t) 0, 128, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
+    mmap_ptr = mmap((caddr_t) 0, BUFFER_SIZE*2, PROT_READ | PROT_WRITE, MAP_SHARED, fid, (off_t) 0); //Create shared map region between RTX and keyboard
 	
     if (mmap_ptr == NULL) {
         exit(0);

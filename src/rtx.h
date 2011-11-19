@@ -22,7 +22,7 @@ extern "C" {
 #define NUM_OF_PROC 8
 #define NUM_OF_USER_PROC 1
 #define NUM_OF_IPROC 3
-#define NUM_TOTAL_PROC 3 //change this to 8 for full implementation
+#define NUM_TOTAL_PROC 4 //change this to 8 for full implementation
 
 //Process IDs
 #define PROC_A 0
@@ -39,7 +39,7 @@ extern "C" {
 #define PROC_P 9
     
 //wakeup codes (unique for each process)
-#define WALL_CLK_WAKEUPCODE = 0;	
+#define WALL_CLK_WAKEUPCODE 0	
 	
 //Process priorities
 #define IPROCESS 0 //used for iprocesses
@@ -69,6 +69,7 @@ extern "C" {
 
 //Success Code
 #define SUCCESS 0
+#define FAIL -1
 
 //Error Codes
 #define ERROR_BAD_MEMORY_UNMAP -1
@@ -183,7 +184,7 @@ typedef struct {
 /*Kernel data field*/
 msg_queue *free_env_Q; //A queue for free envelopes
 PCB_queue *blocked_on_resource_Q; //Blocked on resource queue for PCBs
-msg_queue *sorted_timeout_lst;//used by timer services to store timeout requests
+msg_queue *sorted_timeout_list;//used by timer services to store timeout requests
 ready_process_queue *rpq; //rpq
 input_buffer *in_mem_ptr; // Pointer to input buffer
 output_buffer *out_mem_ptr; // Pointer to  output buffer
@@ -192,6 +193,7 @@ char* input_filename; //file address of shared RX mapped file
 char* output_filename; //file address of shared TX mapped file
 caddr_t *mmap_ptr;
 PCB* current_process;
+int kernel_clock;
 int childpid[2];
 int fileid[2];
 char* KBfilename[8];
@@ -204,4 +206,5 @@ char* CRTfilename[3];
 #endif
 
 #endif	/* RTX_H */
+
 

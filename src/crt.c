@@ -5,12 +5,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "rtx.h"
 #include "init.h"
 #include "iproc.h"
-#include "queue.h"
 #include "userProcesses.h"
-
-//#define bufsize 128;
 
 // do any necessary cleanup before exiting
 // ( in this case, there is no cleanup to do)
@@ -22,8 +20,6 @@ void out_die(int signal)
 
 
 int main (int argc, char * argv[]) {
-    int buf_size;
-    buf_size = 256; 
         int buf_index;
 	int parent_pid, fid;
 
@@ -44,7 +40,7 @@ int main (int argc, char * argv[]) {
 	// attach to shared memory so we can pass input to 
 	// keyboard interrupt handler
 	
-	mmap_ptr = mmap((caddr_t) 0, buf_size , PROT_READ | PROT_WRITE, MAP_SHARED, fid,(off_t) 0);
+	mmap_ptr = mmap((caddr_t) 0, BUFFER_SIZE*2 , PROT_READ | PROT_WRITE, MAP_SHARED, fid,(off_t) 0);
         if (mmap_ptr == NULL){
             printf("Child memory map has failed, CRT is aborting!\n");
             out_die(0);

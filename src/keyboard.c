@@ -8,9 +8,6 @@
 #include <unistd.h> /* for usleep */
 #include <signal.h> /*kill*/
 #include "rtx.h"
-#include "queue.h"
-
-#define buffer_size 256 
 
 /*will need to lock file or use semaphores to regulate access to memory mapped file for concurrency reasons*/
 
@@ -45,7 +42,7 @@ int main(int argc, char* argv[])
 	printf("fid: %i\n", fid); 
 
 	/*establish connection to RX shared memory map*/
-	mmap_ptr = mmap((void *)0, buffer_size, PROT_READ|PROT_WRITE, MAP_SHARED, fid, (off_t) 0);
+	mmap_ptr = mmap((void *)0, BUFFER_SIZE*2, PROT_READ|PROT_WRITE, MAP_SHARED, fid, (off_t) 0);
 	
 	if (mmap_ptr == NULL)
 	{

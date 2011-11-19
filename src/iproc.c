@@ -15,20 +15,12 @@ updated october 23, 2011
 #include "kernelAPI.h"
 
 void kb_iproc(){
-	//THIS IS VERY BAD BECAUSE IT CHANGES CURRENT PROCESS MANUALLY AND DOES, MUST BE CHANGED	    	    
-	    int i;	    
-	    for (i=0;i<NUM_OF_IPROC;i++) //use dest_id to look up the target process PCB pointer
-	    {
-		if (IPROC_KBD == pcb_pointer_tracker[i]->process_id)
-		    current_process = pcb_pointer_tracker[i];
-	    }
 
 	fflush(stdout);
 	printf("kb_iproc msg_queue size: %i\n", current_process->msg_envelope_q.size); 
 	printf("current executing proc id (should be KB): %i\n", current_process->process_id); 
 	fflush(stdout);
 		
-
 	msg_envelope * msg_env = (msg_envelope *)k_receive_message(); 
 
 	while (msg_env == NULL) {
@@ -52,7 +44,8 @@ void kb_iproc(){
 				printf("KBD_IPROC: Setting the kb flag to zero!\n");
 				fflush(stdout);
 				in_mem_ptr->flag = 0;
-				printf("KBD_IPROC: copying contents into message to be sent to process P\n"); fflush		(stdout);				
+				printf("KBD_IPROC: copying contents into message to be sent to process P\n"); 
+				fflush(stdout);				
 				int count = 0;										
 				for(count;count<in_mem_ptr->input_count;count++)
 				{
@@ -65,23 +58,10 @@ void kb_iproc(){
 			}		
 		}
 	}               
-	for (i=0;i<NUM_TOTAL_PROC;i++)
-	{
-	if (PROC_P == pcb_pointer_tracker[i]->process_id)
-		current_process = pcb_pointer_tracker[i];
-	}
 }
 
 void crt_iproc()
 {
-	//set current process
-	int i;		
-	for (i=0;i<NUM_TOTAL_PROC;i++)
-	{
-	if (IPROC_CRT == pcb_pointer_tracker[i]->process_id)
-	    current_process = pcb_pointer_tracker[i];
-	}
-
 	msg_envelope * msg; 
 	int error_code;
 	msg = (msg_envelope *) k_receive_message();   
@@ -119,39 +99,90 @@ void crt_iproc()
 		printf("Signal from CRT has been received. Acknowledgment sent back to process P\n");
 		fflush(stdout);
 	} else {		
-	}
-
-	//change current process back to Proc_P	
-	for (i=0;i<NUM_TOTAL_PROC;i++)
-	{
-	if (PROC_P == pcb_pointer_tracker[i]->process_id)
-	    current_process = pcb_pointer_tracker[i];
+	
 	}
     return; 
 }
 
-void timer_iproc()
-{
-    printf("TIMER_IPROC: invoked");
+void timer_iproc() {
+	//Increment internel kernel clock (in ms)
+	kernel_clock++;
+	
+	printf("Timer iprocess is invoked\n");
+
+	//Now check for any message sent by other processes
+	printf("Recieving time out request from other processes\n");
+	msg_envelope *msg = (msg_envelope *) k_receive_message();
+	if (msg == NULL) {
+		printf("Message is not received\n");
+	}
+
+	while (msg != NULL) {
+		time_out_request_enqueue(msg); //code to enqueue and sort the message envelope into the timeout_list
+		msg = (msg_envelope *) k_receive_message(); //see if any more msgs left
+	}
+
+	//Check if the timeout list is empty
+	if (sorted_timeout_list->size > 0)
+	{
+		//code to decrement the tick count of 1st in the timeout_list
+		printf("Decrementing clock ticks for message envelopes in timeout list\n");
+		msg = sorted_timeout_list->head;
+		if (msg != NULL) {
+		    	msg->n_clock_ticks--;
+			printf("Clock tick:%i\n", msg->n_clock_ticks);
+		}
+		while (msg->next) {
+			msg->n_clock_ticks--;
+		}
+
+		//Search through the timeout list to check for messages with 0 clock ticks
+		printf("Checking for expired message envelope\n");
+		while (sorted_timeout_list->tail->n_clock_ticks == 0)
+		{
+			msg = msg_dequeue(sorted_timeout_list);//Dequeue the expired message from the sender
+			printf("Returning message back to the sender\n");
+			k_send_message(msg->sender_pid, msg);//return envelope to the sender
+		}
+	} else {
+		printf("time out list is empty\n");
+	}
 }
+
 
 void signal_handler(int signum)
 {    
+	PCB* previous_process;
 	switch(signum)
 	{
 			case SIGINT: 
-					k_terminate();
-					break;
+				k_terminate();
+				break;
 			case SIGALRM:
-	                //timer_iproc(signum);
-					break;
+				current_process->process_state = INTERRUPTED;
+				previous_process = current_process;
+				current_process = pcb_pointer_tracker[3];
+	                	timer_iproc();
+	                	current_process = previous_process;
+	               		current_process->process_state = EXECUTING;
+				break;
 			case SIGUSR1: // kb handler
-					kb_iproc();
-					break;
+				current_process->process_state = INTERRUPTED;
+				previous_process = current_process;
+			    	current_process = pcb_pointer_tracker[IPROC_KBD];
+		 		kb_iproc();
+	                	current_process = previous_process;
+	               		current_process->process_state = EXECUTING;
+				break;
 			case SIGUSR2: // crt handler
-					crt_iproc();
-					break;
+				current_process->process_state = INTERRUPTED;
+				previous_process = current_process;
+				current_process = pcb_pointer_tracker[IPROC_CRT];
+				crt_iproc();
+	                	current_process = previous_process;
+	                	current_process->process_state = EXECUTING;
+				break;
 	}	
-    
-}
+} 	
+
 
