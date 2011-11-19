@@ -37,7 +37,7 @@ void process_NULL()
 }
 
 void wall_clock() {
-
+/*
 	//this section is only going to run once during the lifetime of the rtx
     int time = 0;
 	int clock_status = OFF;
@@ -113,7 +113,7 @@ void wall_clock() {
 		//requested and keep it reserved
 		
 	}while(awake); //at this line of code the process is always awake...so it always runs
-	
+	*/
 	
 }
 
@@ -128,7 +128,18 @@ void processP()
 	}
 	//now enter infinite loop
 	while (1) {
-		printf("P: Send message to kbd..\n");
+		printf("P: Sending timeout request to timer iprocess\n");
+		env->sender_pid = current_process->process_id;
+		env->receiver_pid = IPROC_TIMER;
+		k_request_delay(10, WALL_CLK_WAKEUPCODE, env);
+		printf("Receiving envelope from timer iprocess\n");
+		msg_envelope *temp_ptr;
+		while (temp_ptr == NULL) {
+			//usleep (tWait);
+			temp_ptr = (msg_envelope *) receive_message();
+		}
+		printf("Recieved envelope from timer_iprocess:%i\n",env->sender_pid);
+		/*printf("P: Send message to kbd..\n");
 		get_console_chars (env); //keyboard input
 		fflush(stdout);
 		printf("P: waiting for message from kb..\n");		
@@ -142,9 +153,9 @@ void processP()
 			   printf("Message received from the KBD\n");		
 			}
 		}
-		
+		*/
 		/* for testing only*/
-        int i = 0;
+    		/*int i = 0;
 
 		fflush(stdout);
 		printf("\nthe message from keyboard was: "); 
@@ -158,13 +169,12 @@ void processP()
 		send_console_chars(env); //CRT output, wait for ack
 		env = (msg_envelope *) receive_message();
 		if (env == NULL) {
-		   printf("Waiting for acknowledgement message from CRT\n");
+		   printf("Waiting for acknowledgment message from CRT\n");
 		}
+
 		while (env == NULL) {
 			usleep (tWait);
 			env = (msg_envelope *) receive_message();
-		}		
-		release_msg_env(env);
+		}*/		
 	}
-
 }

@@ -150,6 +150,61 @@ PCB *remove_PCB_from_rpq(int target_pid) {
     
     if (removed_pcb->next == NULL) {
         //wtf?
-        printf("Error: Cannot find the PCB to dequeue!");
+        printf("Error: Cannot find themsg_envelope PCB to dequeue!");
     }
 }
+
+int time_out_request_enqueue(msg_envelope *msg) {
+	if (msg == NULL){
+		//Something went wrong
+		return FAIL;
+	}
+
+
+	//Check if the timeout list is empty first
+	if (sorted_timeout_list->head == NULL) {
+	    sorted_timeout_list->head = msg;
+	    sorted_timeout_list->tail = msg;
+	    sorted_timeout_list->size++;
+	    msg->previous=NULL;
+	    msg->next=NULL;
+	    return SUCCESS;
+	}
+
+	msg_envelope *temp_ptr = sorted_timeout_list->tail;
+
+	//Check if this message should be enqueued at the head or tail
+	//msg with the smallest n_clock_ticks goes to tail
+	if (msg->n_clock_ticks < temp_ptr->n_clock_ticks) {
+		sorted_timeout_list->tail = msg;
+		msg->previous = temp_ptr;
+		temp_ptr->next = msg;
+		sorted_timeout_list->size++;
+		return SUCCESS;
+	} else {
+		temp_ptr = sorted_timeout_list->head;
+		if (msg->n_clock_ticks > temp_ptr->n_clock_ticks) {
+			sorted_timeout_list->head = msg;
+			msg->next = temp_ptr;
+			temp_ptr->previous = msg;
+			sorted_timeout_list->size++;
+			return SUCCESS;
+		}else {
+			temp_ptr = temp_ptr->next;
+		}
+	}
+
+	//Search for the correct position
+	while (msg->n_clock_ticks < temp_ptr->n_clock_ticks){
+		temp_ptr = temp_ptr->next;
+	}
+
+	msg->previous = temp_ptr->previous->next;
+	temp_ptr->previous->next = msg;
+	msg->next = temp_ptr;
+	temp_ptr->previous = msg;
+	sorted_timeout_list->size++;
+
+	return SUCCESS;
+}
+

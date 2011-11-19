@@ -12,64 +12,58 @@
 
 int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 {
-    if (dest_process_id==0)
-        return ERROR_INVALID_PID;
-        
-    PCB *target_PCB;
-    //int n = NUM_OF_IPROC;
+	if (dest_process_id==0)
+	   return ERROR_INVALID_PID;
 
-    int i;
-    
-    for (i=0;i<NUM_OF_IPROC;i++) //use dest_id to look up the target process PCB pointer
-    {
-        if (dest_process_id == pcb_pointer_tracker[i]->process_id)
-            target_PCB = pcb_pointer_tracker[i];
-    }
-    
+	PCB *target_PCB;
+	//int n = NUM_OF_IPROC;
+
+	int i;
+
+	printf("Dest_process_id: %i\n", dest_process_id);
+	for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
+	{
+	if (dest_process_id == pcb_pointer_tracker[i]->process_id)
+	    target_PCB = pcb_pointer_tracker[i];
+	}
+
 	msg_queue *temp_msg_q;
-    temp_msg_q= &target_PCB->msg_envelope_q;
-    
+	temp_msg_q= &target_PCB->msg_envelope_q;
+	printf("Target process: %i\n",target_PCB->process_id);
+
 	//enqueue envelope onto the message queue of the target process
-    msg_envelope->sender_pid = current_process->process_id;
-    msg_envelope->receiver_pid = dest_process_id;
-    msg_enqueue(msg_envelope, temp_msg_q);
+	msg_envelope->sender_pid = current_process->process_id;
+	msg_envelope->receiver_pid = dest_process_id;
+	msg_enqueue(msg_envelope, temp_msg_q);
 	fflush(stdout);
+
 	printf("check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
-	
+
 	if (target_PCB->msg_envelope_q.head==NULL) {
 		printf("send failed: msg_envelope_q is null\n");
 	}
 	fflush(stdout);        
-    
-    if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
-    {
+
+	if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
+	{
 		target_PCB->process_state = READY;
 		rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
-    }
-    
-    return 0;
+	}
+
+	return SUCCESS;
 }
 
 msg_envelope * k_receive_message()
 {	
-    while ( current_process->msg_envelope_q.size == 0)
+	while ( current_process->msg_envelope_q.size == 0)
 	{			
 		return NULL;
 	}
-    msg_queue *temp_queue;
-    temp_queue = &current_process->msg_envelope_q;
-    msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
-	fflush(stdout);
-    printf("k_recieve_message: Message received from sender #:");
-    printf("%i",temp_envelope->sender_pid);
-	fflush(stdout);
-    printf("k_recieve_message: to receiver #:");
-    printf("%i\n",current_process->process_id);
-	printf("k_message_receive: returning message");
+	msg_queue *temp_queue;
+	temp_queue = &current_process->msg_envelope_q;
+	msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
+	printf("%i",temp_envelope->sender_pid);
 	//store the details of this receive transaction on the receive_trace_buffer
-	printf("queue dequue: msg env: %d\n", temp_envelope->msg_size);
-	printf("msg env envelope sender: %i\n", temp_envelope->sender_pid);
-	printf("msg env envelope dest: %i\n", temp_envelope->receiver_pid);
 	return temp_envelope;
 }
 
@@ -129,7 +123,7 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
     free(blocked_on_resource_Q);
     
     printf("Free sorted time list\n");
-    free(sorted_timeout_lst);
+    free(sorted_timeout_list);
     
     printf("Free RPQ\n");
     free(rpq);     
@@ -179,16 +173,17 @@ int k_get_console_chars(msg_envelope *message_envelope )
 
 int k_request_delay( int time_delay, int wakeup_code, msg_envelope * message_envelope )
 {
-	if (time_delay && wakeup_code && message_envelope)
+    if (message_envelope)
     {
-		message_envelope->n_clock_ticks = time_delay;
+	message_envelope->n_clock_ticks = time_delay;
         // popoulate num of clock ticks desired inside message
-		message_envelope->msg_type = wakeup_code;
+	message_envelope->msg_type = wakeup_code;
         // write message with code timing service will reply with after delay is over
-		int retCode = k_send_message(current_process->process_id, message_envelope);
+	int retCode = k_send_message(message_envelope->receiver_pid, message_envelope);
 		
         return retCode;
-	}
+    }
+    return FAIL;
 }
 
 int k_release_msg_env(msg_envelope * rel_msg) {

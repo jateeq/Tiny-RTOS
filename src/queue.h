@@ -21,6 +21,7 @@ msg_envelope *msg_dequeue(msg_queue *queue);
 int blocked_on_resource_Q_enqueue(PCB *PCB_to_enqueue);
 PCB *blocked_on_resource_Q_dequeue();
 PCB *remove_PCB_from_rpq(int target_pid);
+int time_out_request_enqueue(msg_envelope *msg);
 
 #ifdef	__cplusplus
 }
