@@ -64,7 +64,8 @@ extern "C" {
 #define TERMINATED 2
 #define INCREMENT_CLOCK 3
 #define CHANGE_CLOCK 4
-#define STOP_CLOCK 3
+#define STOP_CLOCK 5
+#define COUNT_REPORT 6
 
 //Success Code
 #define SUCCESS 0

@@ -9,8 +9,15 @@ void process_A() {
     
 }
 
-void process_B() {
+void process_B()
+{
+    while(1)
+    {
+        msg_envelope* env=receive_message(); //receive a message
+        send_message(PROC_C,env); //send the message to process C
+    }
     
+    return;
 }
 
 void process_C() {
@@ -21,8 +28,12 @@ void process_CCI() {
     
 }
 
-void process_NULL() {
+void process_NULL() 
+{
+    while(1) 
+        release_processor();
     
+    return;
 }
 
 void wall_clock() {
