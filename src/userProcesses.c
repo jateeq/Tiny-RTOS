@@ -5,8 +5,23 @@
 #include "userAPI.h"
 #include "rtx.h"
 
-void process_A() {
+void process_A()
+{
+    msg_envelope* temp=receive_message();
+    free(temp); //deallocate the received message envelope
+    int i=0;
     
+    while(1)
+    {
+        msg_envelope* env=request_msg_env();
+        env->msg_type=COUNT_REPORT; //set the message_type field to "count_report"
+        env->msg_text=(char)i;//set the msg_data[1] field to num
+        send_message(PROC_B,env); //send the envelope to process B
+        i++;
+        release_processor();
+    }
+    
+    return;
 }
 
 void process_B()
@@ -30,12 +45,13 @@ void process_CCI() {
 
 void process_NULL() 
 {
-    while(1) 
+    while(1)
+    {
         release_processor();
-    
+    }
     return;
 }
-
+/*
 void wall_clock() {
 
 	//this section is only going to run once during the lifetime of the rtx
@@ -116,7 +132,7 @@ void wall_clock() {
 	
 	
 }
-
+*/
 void processP()
 {
 	const int tWait = 500000; //rcv loop wait time in usec, approx value
