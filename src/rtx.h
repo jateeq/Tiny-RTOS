@@ -19,10 +19,10 @@ extern "C" {
 
 /*Constants*/
 //RTX Processes
-#define NUM_OF_PROC 8
-#define NUM_OF_USER_PROC 2
+#define NUM_OF_PROC 9
+#define NUM_OF_USER_PROC 6
 #define NUM_OF_IPROC 3
-#define NUM_TOTAL_PROC 5 //change this to 8 for full implementation
+#define NUM_TOTAL_PROC 9 //change this to 8 for full implementation
 
 //Process IDs
 #define PROC_A 0
@@ -30,13 +30,11 @@ extern "C" {
 #define PROC_C 2
 #define PROC_CCI 3
 #define PROC_CLK 4
-#define IPROC_KBD 5
-#define IPROC_CRT 6
-#define IPROC_TIMER 7
-#define PROC_NULL 8
+#define PROC_NULL 5
+#define IPROC_TIMER 6
+#define IPROC_KBD 7
+#define IPROC_CRT 8
 
-//PROCP
-#define PROC_P 9
     
 //wakeup codes (unique for each process)
 #define WALL_CLK_WAKEUPCODE 0

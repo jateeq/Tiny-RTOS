@@ -100,27 +100,32 @@ void initialize_IT() {
 	init_table[3].process_id = PROC_CCI;
 	init_table[3].process_priority = PROC_CCI_PRIORITY;
 	init_table[3].stack_size = STACK_SIZE;
-	init_table[3].initial_pc = (void*) process_CCI;
-
-	init_table[4].process_id = PROC_NULL;
-	init_table[4].process_priority = PROC_NULL_PRIORITY;
+	init_table[3].initial_pc = (void*) wall_clock;
+	
+	init_table[4].process_id = PROC_CLK;
+	init_table[4].process_priority = PROC_CLK_PRIORITY;
 	init_table[4].stack_size = STACK_SIZE;
 	init_table[4].initial_pc = (void*) process_NULL;
 
-    init_table[5].process_id = IPROC_TIMER;
-	init_table[5].process_priority = IPROCESS;
+	init_table[5].process_id = PROC_NULL;
+	init_table[5].process_priority = PROC_NULL_PRIORITY;
 	init_table[5].stack_size = STACK_SIZE;
-    init_table[5].initial_pc = (void*) timer_iproc;
+	init_table[5].initial_pc = (void*) process_NULL;
+
+    	init_table[6].process_id = IPROC_TIMER;
+	init_table[6].process_priority = IPROCESS;
+	init_table[6].stack_size = STACK_SIZE;
+    	init_table[6].initial_pc = (void*) timer_iproc;
         
 	init_table[6].process_id = IPROC_KBD;
 	init_table[6].process_priority = IPROCESS;
 	init_table[6].stack_size = STACK_SIZE;
 	init_table[6].initial_pc = (void*) kb_iproc;
 
-	init_table[7].process_id = IPROC_CRT;
-	init_table[7].process_priority = IPROCESS;
-	init_table[7].stack_size = STACK_SIZE;
-	init_table[7].initial_pc = (void*) crt_iproc;
+	init_table[8].process_id = IPROC_CRT;
+	init_table[8].process_priority = IPROCESS;
+	init_table[8].stack_size = STACK_SIZE;
+	init_table[8].initial_pc = (void*) crt_iproc;
 }
 
 int initialize_process() {
@@ -221,7 +226,7 @@ int init_keyboard_process() {
      char arg_for_child2 [20]; // Two char array to store pid and fid
      
      sprintf(arg_for_child1, "%d", pid); 
-     sprintf(arg_for_child2, "%d", fid); //Convert the id into character array
+     sprintf(arg_for_child2, "%qd", fid); //Convert the id into character array
     
      int current_id = fork(); //Create kbd child process 	 	 
      if (current_id == 0) { //Check if this is child process
