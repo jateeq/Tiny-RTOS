@@ -37,22 +37,13 @@ int main(int argc, char** argv) {
 
     printf("Initializing user and iprocess...\n");
     initialize_process();
-    /*
-    printf("Initializing keyboard process...\n");
-//init_keyboard_process();
     
- //   if (retCode == 0) {
-        
- //   }
+    printf("Initializing keyboard process...\n");
+    init_keyboard_process();
     
      printf("Initializing CRT process...\n");
-     //init_crt_process();
-    
-////    if (retCode == 0 ) {
- //       
- //   }
-    /**/
-    
+     init_crt_process();
+   
     //Setting up clocktick signals
 
     current_process = rpq_dequeue();
@@ -64,7 +55,7 @@ int main(int argc, char** argv) {
     ualarm(100000,100000);
     processP();	
 
-    //longjmp(*(current_process->context),1);
+    longjmp(*(current_process->context),1);
     while(1);
     return (EXIT_SUCCESS);
 }
