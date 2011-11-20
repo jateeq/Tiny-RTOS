@@ -77,14 +77,6 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
 msg_envelope * k_receive_message()
 {	
-    while ( current_process->msg_envelope_q.size == 0)
-	return NULL;
-    
-    msg_queue *temp_queue;
-    temp_queue = &current_process->msg_envelope_q;
-    msg_envelope* temp_envelope=msg_dequeue(temp_queue);
-    printf("%i",temp_envelope->sender_pid);
-    //store the details of this receive transaction on the receive_trace_buffer
 	while ( current_process->msg_envelope_q.size == 0)
 	{			
 		return NULL;
