@@ -105,7 +105,7 @@ void process_CCI() {
 void process_NULL() 
 {
     while(1) 
-        release_processor();
+      //  release_processor();
     
     return;
 }

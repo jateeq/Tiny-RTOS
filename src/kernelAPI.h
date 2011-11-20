@@ -18,6 +18,7 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope );
 int k_release_msg_env(msg_envelope * msg);
 int k_release_processor();
 int k_request_process_status(msg_envelope* env);
+int k_get_trace_buffers(msg_envelope* env);
 
 #ifdef	__cplusplus
 }
