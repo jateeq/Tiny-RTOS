@@ -35,8 +35,67 @@ void process_B()
     return;
 }
 
-void process_C() {
+void process_C()
+{   
+    PCB* pcb;
+    msg_envelope* env;
+    int i;
     
+    for (i = 0;i<NUM_OF_USER_PROC;i++)
+    {
+        if (pcb_pointer_tracker[i]->process_id==PROC_C)
+        {
+            pcb = pcb_pointer_tracker[i];
+        }
+    }//perform any needed initialization
+    
+    while(1)
+    {        
+	if (pcb->msg_envelope_q.head==NULL)
+	{
+            env=receive_message(); //receive a message
+        }
+	else
+	{
+            env=msg_dequeue(pcb->msg_envelope_q); //dequeue the first message from the local message queue
+        }
+    
+        if (env->msg_type==COUNT_REPORT)
+        {
+            if (((int)env->msg_text[1])%20==0) //msg_data[1] is evenly divisible by 20
+            {
+		char display[8]={'P','r','o','c','e','s','s','C'}; //send "ProcessC" to display using msg envelope
+		for (i=0;i<8;i++)
+		{
+		    env->msg_text[i+2]=display[i];
+		    printf("&c",env->msg_text[i+2]);
+		}
+		printf("\n");
+
+		int t = 500000; //wait for display_ack
+		send_console_char(env);
+		env=receive_message();
+		while (env==NULL)
+		{
+		    usleep(t);
+		    env=receive_message();
+		}
+		
+		request_delay(1000,WAKEUP10,env); //request a 10 second delay with wakeup_code set to "wakeup10"
+                
+		while (env->msg_type!=WAKEUP10)
+		{
+		    env=receive_message(); //receive a message (block and let other processes execute)
+		    msg_enqueue(env,pcb->msg_envelope_q); //put message on the local message queue for later processing		
+		}
+            }
+        }
+        
+        release_msg_env(env); //deallocate message envelope
+        release_processor();
+    }
+        
+    return;
 }
 
 void process_CCI() {
