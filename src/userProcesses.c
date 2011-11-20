@@ -319,7 +319,7 @@ void wall_clock() {
 		//what if it takes a very long time - approx 1s - to get a message? our clock will not be up to date
 		
 		msg = NULL;
-		
+	
 		while(msg == NULL)
 			msg = request_msg_env();
 		

@@ -117,10 +117,10 @@ void initialize_IT() {
 	init_table[6].stack_size = STACK_SIZE;
     	init_table[6].initial_pc = (void*) timer_iproc;
         
-	init_table[6].process_id = IPROC_KBD;
-	init_table[6].process_priority = IPROCESS;
-	init_table[6].stack_size = STACK_SIZE;
-	init_table[6].initial_pc = (void*) kb_iproc;
+	init_table[7].process_id = IPROC_KBD;
+	init_table[7].process_priority = IPROCESS;
+	init_table[7].stack_size = STACK_SIZE;
+	init_table[7].initial_pc = (void*) kb_iproc;
 
 	init_table[8].process_id = IPROC_CRT;
 	init_table[8].process_priority = IPROCESS;
@@ -180,7 +180,7 @@ int initialize_process() {
 		}	   
     }
 
-    for (i = 1; i < NUM_TOTAL_PROC; i++) {
+    for (i = NUM_OF_USER_PROC; i < NUM_TOTAL_PROC; i++) {
             pcb_pointer_tracker[i] = (PCB *) malloc(sizeof(PCB));
     
             if (pcb_pointer_tracker[i] == NULL) {

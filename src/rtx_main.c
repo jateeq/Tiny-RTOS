@@ -42,10 +42,11 @@ int main(int argc, char** argv) {
     init_keyboard_process();
 
     printf("Initializing CRT process...\n");
-    init_crt_process();
+   // init_crt_process();
     /* */
     //Setting up clocktick signals
 
+    printf("Dequeue from rpq...\n");
     current_process = rpq_dequeue();
     printf("Current_process pid: %i", current_process->process_id);
     if (current_process == NULL) {
@@ -53,6 +54,7 @@ int main(int argc, char** argv) {
     }
 
     ualarm(100000,100000);
+    printf("Load the first process to CPU...\n");
     longjmp(*(current_process->context),1);
     while(1);
     return (EXIT_SUCCESS);
