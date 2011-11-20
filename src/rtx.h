@@ -54,7 +54,6 @@ extern "C" {
 #define INTERRUPTED 2
 #define BLOCKED_ON_ENVELOPE 3
 #define BLOCKED_ON_RECEIVE 4
-#define IPROCESS 5
 
 //IPC
 #define MAX_NUM_MSG_ENV 150

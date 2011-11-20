@@ -16,7 +16,6 @@ void process_CCI() {
 	char std_array[5];
 	std_array[0] = 'C'; std_array[1] = 'C'; std_array[2] = 'I'; std_array[3] = ':'; std_array[4] = ' ';
 	char ps_array[5];
-	ps_array;
 
 	int invalid; 
 	while (1) {
@@ -28,7 +27,7 @@ void process_CCI() {
 		}
 		msg = receive_message();
 		
-		if (msg->msg_type = CONSOLE_INPUT) {
+		if (msg->msg_type == CONSOLE_INPUT) {
 
 			error = 0;
 			invalid = 0;
@@ -43,7 +42,7 @@ void process_CCI() {
 					invalid = 1;
 				}
 			}
-			if (invalid = 0) {// passes previous test
+			if (invalid == 0) {// passes previous test
 
 				//send message to process A
 				if (msg->msg_text[5] == 's' && msg->msg_size == 6) {
@@ -131,7 +130,7 @@ void process_CCI() {
 
 void process_A()
 {
-	msg_envelope * temp;
+	msg_envelope* temp;
 	while (1) {
 		temp = receive_message();
 		if (temp != NULL){
@@ -139,8 +138,8 @@ void process_A()
 			printf("MESSAGE RECEIVED YES!");
 		}	
 	}
-/*
-    msg_envelope* temp=receive_message();
+
+    temp = receive_message();
     release_msg_env(temp); //deallocate the received message envelope
     int i=0;
     
@@ -156,12 +155,12 @@ void process_A()
     
     return;
 
-*/
+
 }
 
 void process_B()
 {
-/*
+
     while(1)
     {
         msg_envelope* env = receive_message(); //receive a message
@@ -169,7 +168,7 @@ void process_B()
     }
     
     return;
-*/
+
 }
 
 void process_C()
@@ -194,7 +193,7 @@ void process_C()
         }
 	else
 	{
-            env=msg_dequeue(pcb->msg_envelope_q); //dequeue the first message from the local message queue
+            env=(msg_envelope *) msg_dequeue(pcb->msg_envelope_q); //dequeue the first message from the local message queue
         }
     
         if (env->msg_type==COUNT_REPORT)
@@ -237,8 +236,8 @@ void process_C()
 
 void process_NULL() 
 {
-    //while(1) 
-        //release_processor();
+    while(1)
+        release_processor();
     
     return;
 }
@@ -311,7 +310,7 @@ void wall_clock() {
 			{
 				msg = NULL;			
 				while(msg==NULL) //need to change this so that only message from iproc_crt are accepted				
-					msg = message_receive(); //wait for a confirmation that the message was sent	
+					msg = receive_message(); //wait for a confirmation that the message was sent	
 				//what if confirmation doesn't come?
 			}
 		}
@@ -340,7 +339,7 @@ void wall_clock() {
 		while(!awake)
 		{
 			msg = receive_message();
-			if (msg != NULL && msg->type!= WALL_CLK_WAKEUPCODE)		//make sure the message received is from the timer process	
+			if (msg != NULL && msg->msg_type!= WALL_CLK_WAKEUPCODE)		//make sure the message received is from the timer process	
 				release_processor();										
 			else if(msg->sender_pid == IPROC_TIMER) //make sure you awake only if message is from timer iproc
 				awake = 1;			
@@ -354,7 +353,7 @@ void wall_clock() {
 	
 	
 }
-
+/*
 void processP()
 {
 	//get msg envelope and send message to wall clock process to simulate CCI
@@ -429,5 +428,5 @@ void processP()
 
 		}		
 		release_msg_env(env);
-	}*/
-}
+	}
+}*/

@@ -53,8 +53,6 @@ int main(int argc, char** argv) {
     }
 
     ualarm(100000,100000);
-    processP();	
-
     longjmp(*(current_process->context),1);
     while(1);
     return (EXIT_SUCCESS);

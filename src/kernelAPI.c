@@ -20,6 +20,7 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
     //int n = NUM_OF_IPROC;
 
     int i;
+    int retCode = SUCCESS;
     printf("Dest_process_id: %i\n", dest_process_id);
 	
     for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
@@ -35,7 +36,7 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
     //enqueue envelope onto the message queue of the target process
     msg_envelope->sender_pid = current_process->process_id;
     msg_envelope->receiver_pid = dest_process_id;
-    msg_enqueue(msg_envelope, temp_msg_q);
+    retCode = msg_enqueue(msg_envelope, temp_msg_q);
     fflush(stdout);
 
     printf("check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
@@ -47,8 +48,8 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
     {
-	target_PCB->process_state = READY;
-	rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
+		target_PCB->process_state = READY;
+		retCode = rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
     }
 
 	//Record send on the trace buffer
@@ -79,10 +80,10 @@ msg_envelope * k_receive_message()
 {	
 	while ( current_process->msg_envelope_q.size == 0)
 	{
-		if (current_process->process_prority == IPROCESS)
+		if (current_process->process_priority == IPROCESS)
 			return NULL;
 		else {
-			current_process->process_status = BLOCKED_ON_RECEIVE; 
+			current_process->process_state = BLOCKED_ON_RECEIVE;
 			process_switch();
 		}
 	}
@@ -115,7 +116,7 @@ msg_envelope * k_receive_message()
 
 int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
 {
-    int retCode=0;
+    int retCode=SUCCESS;
     int i;    
     for (i=0;i<2;i++)
     {
@@ -188,7 +189,7 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
 
 int k_send_console_chars(msg_envelope *message_envelope)
 {
-    int retCode = 0;    
+    int retCode = SUCCESS;
     fflush(stdout);
     printf("Sending message from process P to CRT\n");  
     if (message_envelope != NULL)
@@ -196,14 +197,14 @@ int k_send_console_chars(msg_envelope *message_envelope)
         retCode = k_send_message(IPROC_CRT, message_envelope);
     }
     else
-	retCode = ERROR_INVALID_MID;
+    	retCode = ERROR_INVALID_MID;
 		
     return retCode;
 }
 
 int k_get_console_chars(msg_envelope *message_envelope )
 {
-    int retCode = 0;    
+    int retCode = SUCCESS;
     
     if (message_envelope != NULL)
     {
@@ -243,18 +244,18 @@ int k_release_msg_env(msg_envelope * rel_msg)
     if (rel_msg->msg_size != 0)
         rel_msg->msg_size = 0;
     
-    int rel_error; 
-    rel_error = msg_enqueue(rel_msg, free_env_Q);
+    int retCode = SUCCESS;
+    retCode = msg_enqueue(rel_msg, free_env_Q);
     if (blocked_on_resource_Q->head != NULL)
     {
         blocked_on_resource_Q->head->process_state = READY;
         PCB *temp;
         temp = blocked_on_resource_Q_dequeue(); 
         
-        rel_error = rpq_enqueue(temp);
+        retCode = rpq_enqueue(temp);
     }
     
-    return 0; //should check for error
+    return retCode; //should check for error
 }
 
 msg_envelope * k_request_msg_env()
@@ -280,7 +281,6 @@ int k_change_priority(int new_priority, int target_process_id)
     
     else if (target_process_id==0)
         return ERROR_INVALID_PRIORITY;
-
     else
     {        
         int i;
@@ -368,20 +368,21 @@ int k_get_trace_buffers(msg_envelope *env) {
 			}
 
 			size--;
-		}
+		}	
 
-		if (env->msg_size > BUFFER_SIZE) {
-			return SUCCESS;
-		}
-
+		//Send the filled message envelope to the CRT so that it can output to screen
+		retCode = k_send_console_chars(env);
+        return retCode;
+	} else {
+		return FAIL;
 	}
 }
 
 int k_request_process_status(msg_envelope * msg) {
 	int i;
 	char *outputformat;
-	int error;
-	error = 0; 
+	int retCode;
+	retCode = 0;
 
 	outputformat = "Process_ID,Priority,Status\n";
 	for (i=0; i<NUM_OF_PROC; i++) {
@@ -396,11 +397,11 @@ int k_request_process_status(msg_envelope * msg) {
 	int str_size = strlen(outputformat);
 	char output[str_size];
 	strcpy(output, outputformat);
-	env->msg_size = 0;
+	msg->msg_size = 0;
 	for (i=0; i<str_size; i++) {
-		env->msg_text[i] = output[i];
-		env->msg_size++;
+		msg->msg_text[i] = output[i];
+		msg->msg_size++;
 	}
-	error = send_console_chars(msg);
-	return errorCode; 
+	retCode = send_console_chars(msg);
+	return retCode;
 }

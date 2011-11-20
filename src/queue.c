@@ -2,8 +2,7 @@
 
 int rpq_enqueue(PCB *PCB_to_enqueue) {
 	if (PCB_to_enqueue == NULL) {
-	    //WTF
-            printf("Error the PCB to be enqueued is NULL!");
+	    return FAIL;
 	} 
 
 	int index = PCB_to_enqueue->priority - 1; 
@@ -54,6 +53,10 @@ int msg_enqueue(msg_envelope *msg_env, msg_queue *queue) {
 	fflush(stdout);
 	printf("msg_enqueue invoked\n"); 
 	fflush(stdout);
+	if (msg_env == NULL || queue == NULL) {
+		return FAIL;
+	}
+
 	if (queue->size == 0) {
 		msg_env->previous = NULL;
 		msg_env->next = NULL;
@@ -93,6 +96,10 @@ msg_envelope *msg_dequeue(msg_queue *queue) {
 }
 
 int blocked_on_resource_Q_enqueue(PCB *PCB_to_enqueue){
+	if (PCB_to_enqueue) {
+		return FAIL;
+	}
+
     if (blocked_on_resource_Q->size == 0) {
             blocked_on_resource_Q->head = PCB_to_enqueue;
             blocked_on_resource_Q->tail =  PCB_to_enqueue;
@@ -126,7 +133,7 @@ PCB *blocked_on_resource_Q_dequeue(){
             blocked_on_resource_Q->head = NULL;
 	}
         
-        return temp;
+    return temp;
 }
 
 PCB *remove_PCB_from_rpq(int target_pid) {
@@ -150,8 +157,7 @@ PCB *remove_PCB_from_rpq(int target_pid) {
     } 
     
     if (removed_pcb->next == NULL) {
-        //wtf?
-        printf("Error: Cannot find themsg_envelope PCB to dequeue!");
+        printf("Error: Cannot find the msg_envelope PCB to dequeue!");
     }
 }
 
@@ -160,7 +166,6 @@ int time_out_request_enqueue(msg_envelope *msg) {
 		//Something went wrong
 		return FAIL;
 	}
-
 
 	//Check if the timeout list is empty first
 	if (sorted_timeout_list->head == NULL) {

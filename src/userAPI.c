@@ -22,18 +22,18 @@ void atomic(int on) {
 	{		
 		//unblock the signals
 		sigprocmask(SIG_SETMASK, &oldmask, NULL);
-    }
+     }
 }
 
-int request_process_status(msg_envelope msg) {
+int request_process_status(msg_envelope* env) {
 	int retCode = 0;
 	atomic(ON); 
-	retCode = request_process_status(msg);
+	retCode = request_process_status(env);
 	atomic(OFF);
 	return retCode;
 }
-
-int get_trace_buffers (msg_envelope msg) {
+ 
+int get_trace_buffers (msg_envelope* msg) {
 	int retCode = 0;
 	atomic(ON);
 	retCode = k_get_trace_buffers(msg);
@@ -145,16 +145,6 @@ msg_envelope *request_msg_env()
     atomic(OFF);
     
     return temp;
-}
-
-int request_delay(int time_delay,int wakeup_code,msg_envelope* message_envelope)
-{
-    int retCode;
-    atomic(ON);
-    retCode=k_request_delay(time_delay,wakeup_code,message_envelope);
-    atomic(OFF);
-
-    return retCode;
 }
 
 int release_processor()

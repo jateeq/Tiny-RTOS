@@ -81,41 +81,15 @@ int initialize_data() {
 }
 
 void initialize_IT() {
-	/*User processes ARE INITILAIZE BEFORE IPROCESSES*/ 
-    init_table[0].process_id = PROC_P;
-	init_table[0].process_priority = PROC_P_PRIORITY;
-	init_table[0].stack_size = STACK_SIZE;
-	init_table[0].initial_pc = (void*) processP;
 
-	init_table[1].process_id = PROC_CCI;
-	init_table[1].process_priority = PROC_CCI_PRIORITY;
-	init_table[1].stack_size = STACK_SIZE;
-	init_table[1].initial_pc = (void*) process_CCI;
-        
-    init_table[2].process_id = IPROC_KBD;
-	init_table[2].process_priority = IPROCESS;
-	init_table[2].stack_size = STACK_SIZE;
-	init_table[2].initial_pc = (void*) kb_iproc;
-
-	init_table[3].process_id = IPROC_CRT;
-	init_table[3].process_priority = IPROCESS;
-	init_table[3].stack_size = STACK_SIZE;
-	init_table[3].initial_pc = (void*) crt_iproc;
-        
-        init_table[4].process_id = IPROC_TIMER;
-	init_table[4].process_priority = IPROCESS;
-	init_table[4].stack_size = STACK_SIZE;
-        init_table[4].initial_pc = (void*) timer_iproc;
-
-        /*user processes
-        init_table[0].process_id = PROC_A;
+    init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
 	init_table[0].stack_size = STACK_SIZE ;
-        init_table[0].initial_pc = (void*) process_A;
+    init_table[0].initial_pc = (void*) process_A;
 
 	init_table[1].process_id = PROC_B;
 	init_table[1].process_priority = PROC_B_PRIORITY;
-        init_table[1].stack_size = STACK_SIZE;
+    init_table[1].stack_size = STACK_SIZE;
 	init_table[1].initial_pc = (void*) process_B;
 	
 	init_table[2].process_id = PROC_C;
@@ -132,15 +106,11 @@ void initialize_IT() {
 	init_table[4].process_priority = PROC_NULL_PRIORITY;
 	init_table[4].stack_size = STACK_SIZE;
 	init_table[4].initial_pc = (void*) process_NULL;
-/**/	
-	
 
-	/*Iprocesses*/
-	/*
-        init_table[5].process_id = IPROC_TIMER;
+    init_table[5].process_id = IPROC_TIMER;
 	init_table[5].process_priority = IPROCESS;
 	init_table[5].stack_size = STACK_SIZE;
-        init_table[5].initial_pc = (void*) timer_iproc;
+    init_table[5].initial_pc = (void*) timer_iproc;
         
 	init_table[6].process_id = IPROC_KBD;
 	init_table[6].process_priority = IPROCESS;
@@ -151,7 +121,6 @@ void initialize_IT() {
 	init_table[7].process_priority = IPROCESS;
 	init_table[7].stack_size = STACK_SIZE;
 	init_table[7].initial_pc = (void*) crt_iproc;
-	/**/
 }
 
 int initialize_process() {
@@ -257,7 +226,7 @@ int init_keyboard_process() {
      int current_id = fork(); //Create kbd child process 	 	 
      if (current_id == 0) { //Check if this is child process
          
-         if (execl("./keyboard", "keyboard" ,arg_for_child1, arg_for_child2, NULL ) == -1) { // execute keyboard process and pass in the pid and fid. 
+         if (execl("./build/keyboard", "keyboard" ,arg_for_child1, arg_for_child2, NULL ) == -1) { // execute keyboard process and pass in the pid and fid.
              exit(0);
          }
      } else {
@@ -292,7 +261,7 @@ int init_crt_process() {
     
      int current_id = fork(); //Create kbd child process 	 	 
      if (current_id ==0) { //Check if this is child process
-         execl("./crt", "crt", arg_for_child1, arg_for_child2, NULL); // execute keyboard pocess and pass in the pid and fid.
+         execl("./build/crt", "crt", arg_for_child1, arg_for_child2, NULL); // execute keyboard pocess and pass in the pid and fid.
 	}
     
     childpid[1]=current_id; //termination

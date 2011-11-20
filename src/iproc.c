@@ -46,8 +46,8 @@ void kb_iproc(){
 				in_mem_ptr->flag = 0;
 				printf("KBD_IPROC: copying contents into message to be sent to process P\n"); 
 				fflush(stdout);				
-				int count = 0;										
-				for(count;count<in_mem_ptr->input_count;count++)
+				int count;
+				for(count = 0;count<in_mem_ptr->input_count;count++)
 				{
 					msg_env->msg_text[count] = in_mem_ptr->input_data[count];
 				}
@@ -77,9 +77,9 @@ void crt_iproc()
 		}
 
 		//fill buffer		
-		int count = 0;
+		int count;
 		printf("CRT IPROC: Copying %i characters.\n", msg->msg_size);
-		for(count; count < msg->msg_size; count++)
+		for(count = 0; count < msg->msg_size; count++)
                 {
                     out_mem_ptr->output_data[count] = msg->msg_text[count];
                 }
@@ -164,7 +164,7 @@ void signal_handler(int signum)
 			case SIGALRM:
 				current_process->process_state = INTERRUPTED;
 				previous_process = current_process;
-				current_process = pcb_pointer_tracker[4];
+				current_process = pcb_pointer_tracker[IPROC_TIMER];
 	                	timer_iproc();
 	                	current_process = previous_process;
 	               		current_process->process_state = EXECUTING;
