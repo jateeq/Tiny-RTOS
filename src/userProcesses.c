@@ -339,10 +339,12 @@ void wall_clock() {
 		while(!awake)
 		{
 			msg = receive_message();
-			if (msg != NULL && msg->msg_type!= WALL_CLK_WAKEUPCODE)		//make sure the message received is from the timer process	
+			if (msg == NULL)		//make sure you have received the message
 				release_processor();										
 			else if(msg->sender_pid == IPROC_TIMER) //make sure you awake only if message is from timer iproc
 				awake = 1;			
+			else if(msg->msg_type!= WALL_CLK_WAKEUPCODE) //make sure the message received is from the timer process
+				release_processor();
 		}
 		
 		/*		

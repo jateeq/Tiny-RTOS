@@ -82,14 +82,14 @@ int initialize_data() {
 
 void initialize_IT() {
 
-    init_table[0].process_id = PROC_A;
+ 	   init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
 	init_table[0].stack_size = STACK_SIZE ;
-    init_table[0].initial_pc = (void*) process_A;
+    	init_table[0].initial_pc = (void*) process_A;
 
 	init_table[1].process_id = PROC_B;
 	init_table[1].process_priority = PROC_B_PRIORITY;
-    init_table[1].stack_size = STACK_SIZE;
+    	init_table[1].stack_size = STACK_SIZE;
 	init_table[1].initial_pc = (void*) process_B;
 	
 	init_table[2].process_id = PROC_C;
@@ -100,12 +100,12 @@ void initialize_IT() {
 	init_table[3].process_id = PROC_CCI;
 	init_table[3].process_priority = PROC_CCI_PRIORITY;
 	init_table[3].stack_size = STACK_SIZE;
-	init_table[3].initial_pc = (void*) wall_clock;
+	init_table[3].initial_pc = (void*) process_CCI;
 	
 	init_table[4].process_id = PROC_CLK;
 	init_table[4].process_priority = PROC_CLK_PRIORITY;
 	init_table[4].stack_size = STACK_SIZE;
-	init_table[4].initial_pc = (void*) process_NULL;
+	init_table[4].initial_pc = (void*) wall_clock;
 
 	init_table[5].process_id = PROC_NULL;
 	init_table[5].process_priority = PROC_NULL_PRIORITY;

@@ -14,9 +14,9 @@ int rpq_enqueue(PCB *PCB_to_enqueue) {
 		rpq->pq_array[index]->tail = PCB_to_enqueue;
 		rpq->pq_array[index]->size++;
 	} else {
-		PCB_to_enqueue->next = NULL;
 		PCB_to_enqueue->previous = rpq->pq_array[index]->tail;
-		rpq->pq_array[index]->tail = PCB_to_enqueue;
+		rpq->pq_array[index]->tail->next = PCB_to_enqueue;
+		rpq->pq_array[index]->tail->next = NULL;
 		rpq->pq_array[index]->size++;
 	}
 
