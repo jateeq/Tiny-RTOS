@@ -140,8 +140,8 @@ typedef struct PCB{
    int process_state;
    void (*initial_pc)();
    int priority;
-   char *process_stack;
-   jmp_buf *context;
+   char* process_stack;
+   jmp_buf* context;
    msg_queue msg_envelope_q;
 } PCB;
 	
