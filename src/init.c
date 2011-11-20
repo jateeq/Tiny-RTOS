@@ -23,9 +23,11 @@ Last updated on Nov 5 2011*/
 int PROC_A_PRIORITY = 	MEDIUM;
 int PROC_B_PRIORITY = MEDIUM;
 int PROC_C_PRIORITY = MEDIUM;
-int PROC_P_PRIORITY = MEDIUM;
+//int PROC_P_PRIORITY = MEDIUM;
+int PROC_P_PRIORITY = HIGH;
 int PROC_CCI_PRIORITY = HIGH;
-int PROC_CLK_PRIORITY = HIGH;
+//int PROC_CLK_PRIORITY = HIGH;
+int PROC_CLK_PRIORITY = MEDIUM;
 int IPROC_KBD_PRIORITY = IPROCESS;
 int IPROC_CRT_PRIORITY = IPROCESS;
 int IPROC_TIMER_PRIORITY = IPROCESS;
@@ -76,26 +78,32 @@ int initialize_data() {
 }
 
 void initialize_IT() {
-	/*User processes*/ 
-    	init_table[0].process_id = PROC_P;
+	/*User processes ARE INITILAIZE BEFORE IPROCESSES*/ 
+    init_table[0].process_id = PROC_P;
 	init_table[0].process_priority = PROC_P_PRIORITY;
-	init_table[0].stack_size = STACK_SIZE;
-	init_table[0].initial_pc = (void*) processP;
-        
-    	init_table[1].process_id = IPROC_KBD;
-	init_table[1].process_priority = IPROCESS;
+	init_table[0].stack_size = STACK_SIZE ;
+    init_table[0].initial_pc = (void*) processP;
+    
+	init_table[1].process_id = PROC_CLK;
+	init_table[1].process_priority = PROC_CLK_PRIORITY;
 	init_table[1].stack_size = STACK_SIZE;
-	init_table[1].initial_pc = (void*) kb_iproc;
-
-	init_table[2].process_id = IPROC_CRT;
+	init_table[1].initial_pc = (void*) wall_clock;
+    
+	/*MAKE SURE IPROCESSES ARE INITILAIZED BEFORE USER PROCESSES*/
+    init_table[2].process_id = IPROC_KBD;
 	init_table[2].process_priority = IPROCESS;
 	init_table[2].stack_size = STACK_SIZE;
-	init_table[2].initial_pc = (void*) crt_iproc;
-        
-        init_table[3].process_id = IPROC_TIMER;
+	init_table[2].initial_pc = (void*) kb_iproc;
+
+	init_table[3].process_id = IPROC_CRT;
 	init_table[3].process_priority = IPROCESS;
 	init_table[3].stack_size = STACK_SIZE;
-        init_table[3].initial_pc = (void*) timer_iproc;
+	init_table[3].initial_pc = (void*) crt_iproc;
+        
+        init_table[4].process_id = IPROC_TIMER;
+	init_table[4].process_priority = IPROCESS;
+	init_table[4].stack_size = STACK_SIZE;
+        init_table[4].initial_pc = (void*) timer_iproc;
 
         /*user processes
         init_table[0].process_id = PROC_A;
@@ -122,12 +130,8 @@ void initialize_IT() {
 	init_table[4].process_priority = PROC_NULL_PRIORITY;
 	init_table[4].stack_size = STACK_SIZE;
 	init_table[4].initial_pc = (void*) process_NULL;
-
-	init_table[4].process_id = PROC_CLK;
-	init_table[4].process_priority = PROC_NULL_PRIORITY;
-	init_table[4].stack_size = STACK_SIZE;
-	init_table[4].initial_pc = (void*) process_CLK;
-	/**/
+/**/	
+	
 
 	/*Iprocesses*/
 	/*

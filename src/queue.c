@@ -86,6 +86,7 @@ msg_envelope *msg_dequeue(msg_queue *queue) {
 	queue->size--;
 	if (queue->size == 0){
 		queue->head = NULL;
+		queue->tail = NULL;
 	}
 	
 	return temp;

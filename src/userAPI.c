@@ -71,11 +71,11 @@ void process_switch( )
 
     context_switch( current_process->context, next_process->context ); //switch the context of 'current' process to 'next' process
 
-    if (current_process->process_state==1) {
-        current_process->process_state = 2;
+    if (current_process->process_state== EXECUTING) {
+        current_process->process_state = INTERRUPTED;
         error_code = rpq_enqueue(current_process);
     }
-    else if(current_process->process_state==3) {
+    else if(current_process->process_state==BLOCKED_ON_ENVELOPE) {
         error_code = blocked_on_resource_Q_enqueue(current_process);
     }
     current_process = next_process;// set 'current_process' to point to next's PCB
@@ -100,6 +100,15 @@ int get_console_chars(msg_envelope *message_envelope )
     atomic(OFF);
     
     return retCode;
+}
+
+int request_delay ( int time_delay, int wakeup_code, msg_envelope * message_envelope )
+{
+	int retCode;
+	atomic(ON);
+	retCode = k_request_delay(time_delay, wakeup_code, message_envelope );
+	atomic(OFF);
+	return retCode;
 }
 
 int release_msg_env(msg_envelope *rel_msg)

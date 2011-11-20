@@ -20,8 +20,8 @@ extern "C" {
 /*Constants*/
 //RTX Processes
 #define NUM_OF_PROC 8
-#define NUM_OF_USER_PROC 1
-#define NUM_OF_IPROC 3
+#define NUM_OF_USER_PROC 2
+#define NUM_OF_IPROC 2
 #define NUM_TOTAL_PROC 4 //change this to 8 for full implementation
 
 //Process IDs
@@ -39,7 +39,7 @@ extern "C" {
 #define PROC_P 9
     
 //wakeup codes (unique for each process)
-#define WALL_CLK_WAKEUPCODE 0	
+#define WALL_CLK_WAKEUPCODE 0
 	
 //Process priorities
 #define IPROCESS 0 //used for iprocesses
@@ -66,6 +66,7 @@ extern "C" {
 #define CHANGE_CLOCK 4
 #define STOP_CLOCK 5
 #define COUNT_REPORT 6
+#define SHOW_CLOCK 6
 
 //Success Code
 #define SUCCESS 0

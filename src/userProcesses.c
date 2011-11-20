@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "userProcesses.h"
 #include "userAPI.h"
 #include "rtx.h"
+
+#define MAX_COMMAND_DATA_SIZE 8
 
 void process_A() {
     
@@ -13,7 +15,7 @@ void process_B()
 {
     while(1)
     {
-        msg_envelope* env=receive_message(); //receive a message
+        msg_envelope* env = receive_message(); //receive a message
         send_message(PROC_C,env); //send the message to process C
     }
     
@@ -30,26 +32,28 @@ void process_CCI() {
 
 void process_NULL() 
 {
-    while(1) 
-        release_processor();
+    //while(1) 
+        //release_processor();
     
     return;
 }
 
 void wall_clock() {
-/*
+
 	//this section is only going to run once during the lifetime of the rtx
     int time = 0;
-	int clock_status = OFF;
-	int count = 0;	
+	int clock_status = OFF;	
 	int awake = 1;
-	char* command;
-	char* command_data;
+	int time_set = 0; //determines whether the user set the time or not - used while displaying the time
+	int command;
+	int temp; //stores return values from user APIs	
+	char command_data[MAX_COMMAND_DATA_SIZE];
+	msg_envelope * msg = NULL;
+	msg_envelope * crt_msg = NULL;	
 	
 	//this section should run forever once all variables have been initialized
-	do {	
-		//message_envelope * msg = malloc(sizeof(message_envelope));
-		//msg = receive_message();
+	do {			 
+		msg = receive_message();
 		
 		//expecting messages only from the CCI at this point
 		
@@ -60,66 +64,119 @@ void wall_clock() {
 			int i = 0;
 			
 			//get the command entered by user
-			for(i;i<3;i++)
-				command = msg->text[i];
+			command = msg->msg_type;			
 			
-			//get the time specified by the user
-			if (command == " c")
+			switch(command)
 			{
-				for(i;i<5;i++)
-					command_data = msg->msg_text[i];
+				case 4: 	//set wall clock time
+					command_data[0] = msg->msg_text[0];
+					command_data[1] = msg->msg_text[1];
+					command_data[2] = ' ';
+					command_data[3] = msg->msg_text[2];
+					command_data[4] = msg->msg_text[3];
+					command_data[5] = ' ';
+					command_data[6] = msg->msg_text[4];
+					command_data[7] = msg->msg_text[5];	
 					
-				//parse the data to extract hours, minutes and seconds
-			}
-			
-			if ()
-			switch(msg->msg_text)
-			{
-				case 'c': 	//set wall clock time
-					time = command_data;
+					time_set = 1;
 					break;
-				case 'cd': 	//turn wall clock display on
-					clock_status = ON;
-					break;
-				case 'ct': 	//turn wall clock display off
+				case 5: 	//turn wall clock display off
 					clock_status =  OFF;
 					break;
-				default:
-					//printf("WALL_CLOCK: unrecognized message text"); fflush(stdout);
-					break;
+				case 6: 	//turn wall clock display on					
+					clock_status = ON;
+					break;					
 			}
 		}
 		
+		//display wall clock
 		if (clock_status == ON)
-			//display wall clock
-		
+		{
+			if (time_set == 1) //if the user set the time then a message with the time should be available			
+				temp = send_console_chars(msg); //send to the crt the message with the new user-defined time			
+			else
+			{
+				while(crt_msg == NULL)
+					crt_msg = request_msg_env(); //request envelope to send message to crt
+				temp = send_console_chars(crt_msg); //send to the crt the updated time
+			}
+			
+			if (temp == SUCCESS)
+			{
+				msg = NULL;			
+				while(msg==NULL) //need to change this so that only message from iproc_crt are accepted				
+					msg = message_receive(); //wait for a confirmation that the message was sent	
+				//what if confirmation doesn't come?
+			}
+		}
+					
 		//request a message envelope to send message to timing service
 		//what if it takes a very long time - approx 1s - to get a message? our clock will not be up to date
+		
 		msg = NULL;
+		
 		while(msg == NULL)
 			msg = request_msg_env();
-
+		
+		msg->next = NULL;
+		msg->previous = NULL;
+		msg->sender_pid = PROC_CLK;
+		msg->receiver_pid = IPROC_TIMER;
+		
 		//need to change the time delay according to implementation in the timing service
-		request_delay(1000ms, WALL_CLK_WAKEUPCODE, msg);
+		int code = request_delay(10, WALL_CLK_WAKEUPCODE, msg);
+		
+		if (code == FAIL)
+			printf("WALL CLOCK: could not request delay");
+		
 		awake = 0;
-		
+		int sec = 0;
 		while(!awake)
-			release_processor();
+		{
+			msg = receive_message();
+			if (msg != NULL && msg->type!= WALL_CLK_WAKEUPCODE)		//make sure the message received is from the timer process	
+				release_processor();										
+			else if(msg->sender_pid == IPROC_TIMER) //make sure you awake only if message is from timer iproc
+				awake = 1;			
+		}
 		
-		//if we reach this point the process is awake again and one second has passed
-		awake = 1;
-		
+		/*		
 		//since it is critical that the wall clock have a message envelope on time, don't release the envelope
-		//requested and keep it reserved
+		//requested and keep it reserved*/
 		
 	}while(awake); //at this line of code the process is always awake...so it always runs
-	*/
+	
 	
 }
 
 void processP()
 {
-	const int tWait = 500000; //rcv loop wait time in usec, approx value
+	//get msg envelope and send message to wall clock process to simulate CCI
+	msg_envelope * msg = NULL;
+    
+	while(msg == NULL)
+	{
+		msg = (msg_envelope *) request_msg_env();
+	}
+	
+	//msg->msg_type = CHANGE_CLOCK;
+	msg->msg_type = SHOW_CLOCK;	
+	
+	msg->msg_text[0] = '1';
+	msg->msg_text[1] = '2';
+	msg->msg_text[2] = '1';
+	msg->msg_text[3] = '2';	
+	msg->msg_text[4] = '3';
+	msg->msg_text[5] = '4';
+	
+	msg->sender_pid = PROC_P;
+	msg->receiver_pid = PROC_CLK;
+	
+	send_message(PROC_CLK, msg);
+	
+    current_process = pcb_pointer_tracker[1];
+	wall_clock();
+	/*const int tWait = 500000; //rcv loop wait time in usec, approx value
         msg_envelope * env;
         env = (msg_envelope *) request_msg_env(); //or just malloc memory for one envelope
 	if (env == NULL) {
@@ -153,9 +210,10 @@ void processP()
 			   printf("Message received from the KBD\n");		
 			}
 		}
-		*/
-		/* for testing only*/
-    		/*int i = 0;
+		
+		// for testing only
+        int i = 0;
+>>>>>>> Stashed changes
 
 		fflush(stdout);
 		printf("\nthe message from keyboard was: "); 
@@ -175,6 +233,9 @@ void processP()
 		while (env == NULL) {
 			usleep (tWait);
 			env = (msg_envelope *) receive_message();
-		}*/		
-	}
+
+		}		
+		release_msg_env(env);
+	}*/
+
 }

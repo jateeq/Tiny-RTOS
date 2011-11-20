@@ -138,11 +138,15 @@ void timer_iproc() {
 
 		//Search through the timeout list to check for messages with 0 clock ticks
 		printf("Checking for expired message envelope\n");
-		while (sorted_timeout_list->tail->n_clock_ticks == 0)
+		while (sorted_timeout_list->tail != NULL)
 		{
-			msg = msg_dequeue(sorted_timeout_list);//Dequeue the expired message from the sender
-			printf("Returning message back to the sender\n");
-			k_send_message(msg->sender_pid, msg);//return envelope to the sender
+			if (sorted_timeout_list->tail->n_clock_ticks == 0) {
+				msg = msg_dequeue(sorted_timeout_list);//Dequeue the expired message from the sender
+				printf("Returning message back to the sender\n");
+			    k_send_message(msg->sender_pid, msg);//return envelope to the sender
+			} else {
+				break;
+			}
 		}
 	} else {
 		printf("time out list is empty\n");
@@ -161,7 +165,7 @@ void signal_handler(int signum)
 			case SIGALRM:
 				current_process->process_state = INTERRUPTED;
 				previous_process = current_process;
-				current_process = pcb_pointer_tracker[3];
+				current_process = pcb_pointer_tracker[4];
 	                	timer_iproc();
 	                	current_process = previous_process;
 	               		current_process->process_state = EXECUTING;

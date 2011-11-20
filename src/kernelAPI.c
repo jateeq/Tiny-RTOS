@@ -18,15 +18,14 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 	PCB *target_PCB;
 	//int n = NUM_OF_IPROC;
 
-	int i;
-
-	printf("Dest_process_id: %i\n", dest_process_id);
-	for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
-	{
-	if (dest_process_id == pcb_pointer_tracker[i]->process_id)
-	    target_PCB = pcb_pointer_tracker[i];
-	}
-
+    int i;
+    
+    for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
+    {
+        if (dest_process_id == pcb_pointer_tracker[i]->process_id)
+            target_PCB = pcb_pointer_tracker[i];
+    }
+    
 	msg_queue *temp_msg_q;
 	temp_msg_q= &target_PCB->msg_envelope_q;
 	printf("Target process: %i\n",target_PCB->process_id);
