@@ -386,11 +386,11 @@ int k_request_process_status(msg_envelope * msg) {
 
 	outputformat = "Process_ID,Priority,Status\n";
 	for (i=0; i<NUM_OF_PROC; i++) {
-		strcat(outputformat, pcb_pointer_tracker[i]->process_id);
+		strcat(outputformat, (char* )pcb_pointer_tracker[i]->process_id);
 		strcat(outputformat, ",");
-		strcat(outputformat, pcb_pointer_tracker[i]->process_priority);
+		strcat(outputformat, (char* )pcb_pointer_tracker[i]->process_priority);
 		strcat(outputformat, ",");
-		strcat(outputformat, pcb_pointer_tracker[i]->process_state);
+		strcat(outputformat, (char* )pcb_pointer_tracker[i]->process_state);
 		strcat(outputformat, "\n");
 	}
 
