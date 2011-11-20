@@ -66,7 +66,7 @@ extern "C" {
 #define CHANGE_CLOCK 4
 #define STOP_CLOCK 5
 #define COUNT_REPORT 6
-#define WAKEUP10 7
+#define DISPLAY_CLOCK 
 
 //Success Code
 #define SUCCESS 0
@@ -140,8 +140,8 @@ typedef struct PCB{
    int process_state;
    void (*initial_pc)();
    int priority;
-   char* process_stack;
-   jmp_buf* context;
+   char *process_stack;
+   jmp_buf *context;
    msg_queue msg_envelope_q;
 } PCB;
 	

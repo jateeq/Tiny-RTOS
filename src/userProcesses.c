@@ -5,8 +5,137 @@
 #include "userAPI.h"
 #include "rtx.h"
 
+void process_CCI() {
+
+	msg_envelope * msg;
+	int error;
+	char std_array[5];
+	std_array[0] = 'C'; std_array[1] = 'C'; std_array[2] = 'I'; std_array[3] = ':'; std_array[4] = ' ';
+	char ps_array[5];
+	ps_array;
+
+	int invalid; 
+	while (1) {
+		if (current_process->msg_envelope_q.size == 0) {
+			if (msg == NULL) {
+				msg = request_msg_env();
+			}	
+			error = get_console_chars(msg);
+		}
+		msg = receive_message();
+		
+		if (msg->msg_type = CONSOLE_INPUT) {
+
+			error = 0;
+			invalid = 0;
+			int i;
+
+			//check if the beginning of the message starts with "CCI:_"
+			for (i=0; i<5; i++) {
+				if(msg->msg_text[i] != std_array[i]) {
+					invalid = 1; //invalid input
+				}
+				else {
+					invalid = 1;
+				}
+			}
+			if (invalid = 0) {// passes previous test
+
+				//send message to process A
+				if (msg->msg_text[5] == 's' && msg->msg_size == 6) {
+					error = send_message(PROC_A, msg);
+				}
+
+				//display process status
+				else if (msg->msg_text[5] == 'p' && msg->msg_text[6] == 's' && msg->msg_size == 7) {
+					error = request_process_status(msg);
+				}
+		
+				//Wall clock set time
+				//********ATTN: not sure how atoi works******
+				/*else if (atoi(msg->msg_text[5])<=9 && atoi(msg->msg_text[6])<=9 && msg_msg_text[7] == ':' && atoi(msg->msg_text[8])<=9 && atoi(msg->msg_text[9])<=9 && msg->msg_text[10]==':' && atoi(msg->msg_text[11])<=9 && atoi(msg->msg_text[12])<=9) {
+					msg->msg_size = 6;
+					msg->msg_text[0] = msg->msg_text[5];
+					msg->msg_text[1] = msg->msg_text[6];
+					msg->msg_text[2] = msg->msg_text[8];
+					msg->msg_text[3] = msg->msg_text[9];
+					msg->msg_text[4] = msg->msg_text[11];
+					msg->msg_text[5] = msg->msg_text[12];
+					msg->msg_type = CHANGE_CLOCK;
+					error = send_message(PROC_CLK, msg);
+				}
+				*/
+				//Turn on wall clock
+				else if (msg->msg_text[5]=='c' && msg->msg_text[6]=='d' && msg->msg_size==7) {
+					msg->msg_type = DISPLAY_CLOCK; 
+					error = send_message(PROC_CLK, msg);
+				}
+				//Turn off wall clock
+				else if (msg->msg_text[5]=='c' && msg->msg_text[6]=='t' && msg->msg_size==7) {
+					msg->msg_type = STOP_CLOCK;
+					error = send_message(PROC_CLK, msg); 
+				}
+
+				//get trace buffers
+				else if (msg->msg_text[5] =='b' && msg->msg_size==6) {
+					error = get_trace_buffers(msg);		
+				}
+				
+				//terminate
+				else if (msg->msg_text[5]=='t' && msg->msg_size==6) {
+					error = terminate();
+				}
+				//change priority
+				//********ATTN: not sure how atoi works******
+				/*
+				else if (msg->msg_text[5]=='n' && msg->text[6]==' ' && atoi(msg->msg_text[7])<=9 && msg->text[8]==' ' && atoi(msg->msg_text[9])<=9) {
+					if (atoi(msg->msg_text[9]) == PROC_NULL)
+						//do something to handle this case. For now, just printf
+						fflush(stdout);
+						printf("cannnot change null process priority");
+					}
+					else if (atoi(msg->msg_text[7]) > 3 || atoi(msg->msg_text[9]) > NUM_OF_PROCESSES || atoi(msg->msg_text[7]) < 0) {
+						//do something to handle this case. Fllor now, just printf
+						fflush(stdout);
+						printf("cannnot change null process priority");
+					}
+					else {
+						error = change_priority( atoi(msg->msg_text[7]), atoi(msg->msg_text[9]) );
+					}
+				}
+				*/
+				
+				
+				//default case: if all above cases fall through
+				else {
+					invalid = 1; 
+				}
+
+			}
+		}
+		if (invalid == 1) {
+			fflush(stdout);
+			printf("CCI receives message not for CONSOLE_INPUT");
+		}
+		// we should get rid of the envelope in possession
+		if (msg != NULL) {
+			error = release_msg_env(msg);
+		}
+	}
+}				
+
+
 void process_A()
 {
+	msg_envelope * temp;
+	while (1) {
+		temp = receive_message();
+		if (temp != NULL){
+			fflush(stdout);
+			printf("MESSAGE RECEIVED YES!");
+		}	
+	}
+/*
     msg_envelope* temp=receive_message();
     release_msg_env(temp); //deallocate the received message envelope
     int i=0;
@@ -22,10 +151,13 @@ void process_A()
     }
     
     return;
+
+*/
 }
 
 void process_B()
 {
+/*
     while(1)
     {
         msg_envelope* env=receive_message(); //receive a message
@@ -33,6 +165,7 @@ void process_B()
     }
     
     return;
+*/
 }
 
 void process_C()
@@ -98,15 +231,10 @@ void process_C()
     return;
 }
 
-void process_CCI() {
-    
-}
-
 void process_NULL() 
 {
     while(1) 
-        release_processor();
-    
+      //  release_processor();
     return;
 }
 /*
@@ -238,7 +366,6 @@ void processP()
 			usleep (tWait);
 			env = (msg_envelope *) receive_message();
 		}		
-		release_msg_env(env);
 	}
-
+	release_msg_env(env);
 }
