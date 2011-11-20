@@ -8,14 +8,14 @@
 void process_A()
 {
     msg_envelope* temp=receive_message();
-    free(temp); //deallocate the received message envelope
+    release_msg_env(temp); //deallocate the received message envelope
     int i=0;
     
     while(1)
     {
         msg_envelope* env=request_msg_env();
         env->msg_type=COUNT_REPORT; //set the message_type field to "count_report"
-        env->msg_text=(char)i;//set the msg_data[1] field to num
+        env->msg_text[1]=(char)i;//set the msg_data[1] field to num
         send_message(PROC_B,env); //send the envelope to process B
         i++;
         release_processor();
@@ -45,15 +45,14 @@ void process_CCI() {
 
 void process_NULL() 
 {
-    while(1)
-    {
+    while(1) 
         release_processor();
-    }
+    
     return;
 }
-
-void wall_clock() {
 /*
+void wall_clock() {
+
 	//this section is only going to run once during the lifetime of the rtx
     int time = 0;
 	int clock_status = OFF;
@@ -129,10 +128,10 @@ void wall_clock() {
 		//requested and keep it reserved
 		
 	}while(awake); //at this line of code the process is always awake...so it always runs
-	*/
+	
 	
 }
-
+*/
 void processP()
 {
 	const int tWait = 500000; //rcv loop wait time in usec, approx value
@@ -144,18 +143,7 @@ void processP()
 	}
 	//now enter infinite loop
 	while (1) {
-		printf("P: Sending timeout request to timer iprocess\n");
-		env->sender_pid = current_process->process_id;
-		env->receiver_pid = IPROC_TIMER;
-		k_request_delay(10, WALL_CLK_WAKEUPCODE, env);
-		printf("Receiving envelope from timer iprocess\n");
-		msg_envelope *temp_ptr;
-		while (temp_ptr == NULL) {
-			//usleep (tWait);
-			temp_ptr = (msg_envelope *) receive_message();
-		}
-		printf("Recieved envelope from timer_iprocess:%i\n",env->sender_pid);
-		/*printf("P: Send message to kbd..\n");
+		printf("P: Send message to kbd..\n");
 		get_console_chars (env); //keyboard input
 		fflush(stdout);
 		printf("P: waiting for message from kb..\n");		
@@ -169,9 +157,9 @@ void processP()
 			   printf("Message received from the KBD\n");		
 			}
 		}
-		*/
+		
 		/* for testing only*/
-    		/*int i = 0;
+        int i = 0;
 
 		fflush(stdout);
 		printf("\nthe message from keyboard was: "); 
@@ -185,12 +173,13 @@ void processP()
 		send_console_chars(env); //CRT output, wait for ack
 		env = (msg_envelope *) receive_message();
 		if (env == NULL) {
-		   printf("Waiting for acknowledgment message from CRT\n");
+		   printf("Waiting for acknowledgement message from CRT\n");
 		}
-
 		while (env == NULL) {
 			usleep (tWait);
 			env = (msg_envelope *) receive_message();
-		}*/		
+		}		
+		release_msg_env(env);
 	}
+
 }

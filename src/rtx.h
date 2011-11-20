@@ -66,6 +66,7 @@ extern "C" {
 #define CHANGE_CLOCK 4
 #define STOP_CLOCK 5
 #define COUNT_REPORT 6
+#define WAKEUP10 7
 
 //Success Code
 #define SUCCESS 0

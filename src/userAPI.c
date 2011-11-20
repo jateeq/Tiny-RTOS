@@ -121,3 +121,13 @@ msg_envelope *request_msg_env()
     
     return temp;
 }
+
+int request_delay(int time_delay,int wakeup_code,msg_envelope* message_envelope)
+{
+    int retCode;
+    atomic(ON);
+    retCode=k_request_delay(time_delay,wakeup_code,message_envelope);
+    atomic(OFF);
+
+    return retCode;
+}
