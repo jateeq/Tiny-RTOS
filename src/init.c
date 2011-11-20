@@ -84,15 +84,14 @@ void initialize_IT() {
 	/*User processes ARE INITILAIZE BEFORE IPROCESSES*/ 
     init_table[0].process_id = PROC_P;
 	init_table[0].process_priority = PROC_P_PRIORITY;
-	init_table[0].stack_size = STACK_SIZE ;
-    init_table[0].initial_pc = (void*) processP;
-    
-	init_table[1].process_id = PROC_CLK;
-	init_table[1].process_priority = PROC_CLK_PRIORITY;
+	init_table[0].stack_size = STACK_SIZE;
+	init_table[0].initial_pc = (void*) processP;
+
+	init_table[1].process_id = PROC_CCI;
+	init_table[1].process_priority = PROC_CCI_PRIORITY;
 	init_table[1].stack_size = STACK_SIZE;
-	init_table[1].initial_pc = (void*) wall_clock;
-    
-	/*MAKE SURE IPROCESSES ARE INITILAIZED BEFORE USER PROCESSES*/
+	init_table[1].initial_pc = (void*) process_CCI;
+        
     init_table[2].process_id = IPROC_KBD;
 	init_table[2].process_priority = IPROCESS;
 	init_table[2].stack_size = STACK_SIZE;

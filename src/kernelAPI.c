@@ -78,8 +78,13 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 msg_envelope * k_receive_message()
 {	
 	while ( current_process->msg_envelope_q.size == 0)
-	{			
-		return NULL;
+	{
+		if (current_process->process_prority == IPROCESS)
+			return NULL;
+		else {
+			current_process->process_status = BLOCKED_ON_RECEIVE; 
+			process_switch();
+		}
 	}
 	msg_queue *temp_queue;
 	temp_queue = &current_process->msg_envelope_q;
@@ -372,3 +377,30 @@ int k_get_trace_buffers(msg_envelope *env) {
 	}
 }
 
+int k_request_process_status(msg_envelope * msg) {
+	int i;
+	char *outputformat;
+	int error;
+	error = 0; 
+
+	outputformat = "Process_ID,Priority,Status\n";
+	for (i=0; i<NUM_OF_PROC; i++) {
+		strcat(outputformat, pcb_pointer_tracker[i]->process_id);
+		strcat(outputformat, ",");
+		strcat(outputformat, pcb_pointer_tracker[i]->process_priority);
+		strcat(outputformat, ",");
+		strcat(outputformat, pcb_pointer_tracker[i]->process_state);
+		strcat(outputformat, "\n");
+	}
+
+	int str_size = strlen(outputformat);
+	char output[str_size];
+	strcpy(output, outputformat);
+	env->msg_size = 0;
+	for (i=0; i<str_size; i++) {
+		env->msg_text[i] = output[i];
+		env->msg_size++;
+	}
+	error = send_console_chars(msg);
+	return errorCode; 
+}
