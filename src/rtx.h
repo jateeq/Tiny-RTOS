@@ -21,8 +21,8 @@ extern "C" {
 //RTX Processes
 #define NUM_OF_PROC 8
 #define NUM_OF_USER_PROC 2
-#define NUM_OF_IPROC 2
-#define NUM_TOTAL_PROC 4 //change this to 8 for full implementation
+#define NUM_OF_IPROC 3
+#define NUM_TOTAL_PROC 5 //change this to 8 for full implementation
 
 //Process IDs
 #define PROC_A 0
@@ -54,6 +54,7 @@ extern "C" {
 #define INTERRUPTED 2
 #define BLOCKED_ON_ENVELOPE 3
 #define BLOCKED_ON_RECEIVE 4
+#define IPROCESS 5
 
 //IPC
 #define MAX_NUM_MSG_ENV 150

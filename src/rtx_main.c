@@ -40,10 +40,10 @@ int main(int argc, char** argv) {
     
     printf("Initializing keyboard process...\n");
     init_keyboard_process();
-    
-     printf("Initializing CRT process...\n");
-     init_crt_process();
-   
+
+    printf("Initializing CRT process...\n");
+    init_crt_process();
+    /* */
     //Setting up clocktick signals
 
     current_process = rpq_dequeue();

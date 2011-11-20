@@ -27,11 +27,17 @@ void atomic(int on) {
 
 int request_process_status(msg_envelope msg) {
 	int retCode = 0;
+	atomic(ON); 
+	retCode = request_process_status(msg);
+	atomic(OFF);
 	return retCode;
 }
 
 int get_trace_buffers (msg_envelope msg) {
 	int retCode = 0;
+	atomic(ON);
+	retCode = k_get_trace_buffers(msg);
+	atomic(OFF);
 	return retCode;
 }
 

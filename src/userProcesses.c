@@ -8,6 +8,9 @@
 
 void process_CCI() {
 
+	fflush(stdout);
+	printf("hello CCI invoked"); 	
+	fflush(stdout);
 	msg_envelope * msg;
 	int error;
 	char std_array[5];

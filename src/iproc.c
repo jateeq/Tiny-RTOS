@@ -16,10 +16,10 @@ updated october 23, 2011
 
 void kb_iproc(){
 
-	fflush(stdout);
-	printf("kb_iproc msg_queue size: %i\n", current_process->msg_envelope_q.size); 
-	printf("current executing proc id (should be KB): %i\n", current_process->process_id); 
-	fflush(stdout);
+//	fflush(stdout);
+//	printf("kb_iproc msg_queue size: %i\n", current_process->msg_envelope_q.size); 
+//	printf("current executing proc id (should be KB): %i\n", current_process->process_id); 
+//	fflush(stdout);
 		
 	msg_envelope * msg_env = (msg_envelope *)k_receive_message(); 
 
@@ -108,13 +108,13 @@ void timer_iproc() {
 	//Increment internel kernel clock (in ms)
 	kernel_clock++;
 	
-	printf("Timer iprocess is invoked\n");
+//	printf("Timer iprocess is invoked\n");
 
 	//Now check for any message sent by other processes
-	printf("Recieving time out request from other processes\n");
+//	printf("Recieving time out request from other processes\n");
 	msg_envelope *msg = (msg_envelope *) k_receive_message();
 	if (msg == NULL) {
-		printf("Message is not received\n");
+//		printf("Message is not received\n");
 	}
 
 	while (msg != NULL) {
@@ -126,7 +126,7 @@ void timer_iproc() {
 	if (sorted_timeout_list->size > 0)
 	{
 		//code to decrement the tick count of 1st in the timeout_list
-		printf("Decrementing clock ticks for message envelopes in timeout list\n");
+//		printf("Decrementing clock ticks for message envelopes in timeout list\n");
 		msg = sorted_timeout_list->head;
 		if (msg != NULL) {
 		    	msg->n_clock_ticks--;
@@ -136,7 +136,6 @@ void timer_iproc() {
 			msg->n_clock_ticks--;
 		}
 
-		//Search through the timeout list to check for messages with 0 clock ticks
 		printf("Checking for expired message envelope\n");
 		while (sorted_timeout_list->tail != NULL)
 		{
@@ -149,7 +148,7 @@ void timer_iproc() {
 			}
 		}
 	} else {
-		printf("time out list is empty\n");
+//		printf("time out list is empty\n");
 	}
 }
 
