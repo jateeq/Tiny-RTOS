@@ -53,8 +53,8 @@ void kb_iproc(){
 				}
 				msg_env->msg_size = in_mem_ptr->input_count;
 				in_mem_ptr->input_count = 0;								
-				printf("KBD_IPROC: sending message to process p"); fflush(stdout);				
-				k_send_message(PROC_P, msg_env);
+				printf("KBD_IPROC: sending message to process CCI\n"); fflush(stdout);				
+				k_send_message(PROC_CCI, msg_env);
 			}		
 		}
 	}               
@@ -94,7 +94,7 @@ void crt_iproc()
 		msg->receiver_pid = msg->sender_pid;
 		msg->sender_pid = current_process->process_id; 
 		msg->msg_type = DISPLAY_ACK;
-		error_code = k_send_message(PROC_P, msg);
+		error_code = k_send_message(PROC_C, msg);
 		fflush(stdout);
 		printf("Signal from CRT has been received. Acknowledgment sent back to process P\n");
 		fflush(stdout);
