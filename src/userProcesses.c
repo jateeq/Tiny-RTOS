@@ -73,7 +73,7 @@ void process_C()
 		printf("\n");
 
 		int t = 500000; //wait for display_ack
-		send_console_char(env);
+		send_console_chars(env);
 		env=receive_message();
 		while (env==NULL)
 		{

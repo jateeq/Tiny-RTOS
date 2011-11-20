@@ -131,3 +131,13 @@ int request_delay(int time_delay,int wakeup_code,msg_envelope* message_envelope)
 
     return retCode;
 }
+
+int release_processor()
+{
+    int retCode;
+    atomic(ON);
+    retCode=k_release_processor();
+    atomic(OFF);
+    
+    return retCode;
+}
