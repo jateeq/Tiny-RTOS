@@ -66,7 +66,7 @@ extern "C" {
 #define CHANGE_CLOCK 4
 #define STOP_CLOCK 5
 #define COUNT_REPORT 6
-#define WAKEUP10 7
+#define DISPLAY_CLOCK 
 
 //Success Code
 #define SUCCESS 0
@@ -140,8 +140,8 @@ typedef struct PCB{
    int process_state;
    void (*initial_pc)();
    int priority;
-   char* process_stack;
-   jmp_buf* context;
+   char *process_stack;
+   jmp_buf *context;
    msg_queue msg_envelope_q;
 } PCB;
 	
@@ -168,13 +168,11 @@ typedef struct {
 //the send trace buffer
 typedef struct {
 	msg_trace send_trace_buffer_array[16];
-	int index;
 }send_trace_buffer;
 
 //the receive trace buffer
 typedef struct {
 	msg_trace receive_trace_buffer_array[16];
-	int index;
 } receive_trace_buffer;
 
 // Where is the iprocess timer queue?
@@ -201,8 +199,6 @@ int childpid[2];
 int fileid[2];
 char* KBfilename[8];
 char* CRTfilename[3];
-send_trace_buffer *send_tr_buf;
-receive_trace_buffer *receive_tr_buf;
 /**/
 
 

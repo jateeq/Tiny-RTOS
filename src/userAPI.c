@@ -25,6 +25,16 @@ void atomic(int on) {
     }
 }
 
+int request_process_status(msg_envelope msg) {
+	int retCode = 0;
+	return retCode;
+}
+
+int get_trace_buffers (msg_envelope msg) {
+	int retCode = 0;
+	return retCode;
+}
+
 int terminate()
 {
 	int retCode = 0;	
