@@ -40,6 +40,7 @@ extern "C" {
     
 //wakeup codes (unique for each process)
 #define WALL_CLK_WAKEUPCODE 0
+#define PROC_C_WAKEUP_CODE 8
 	
 //Process priorities
 #define IPROCESS 0 //used for iprocesses
@@ -48,7 +49,7 @@ extern "C" {
 #define LOW 3
 
 //Process state
-#define READY 0
+#define READY 0	
 #define EXECUTING 1
 #define INTERRUPTED 2
 #define BLOCKED_ON_ENVELOPE 3
@@ -168,11 +169,13 @@ typedef struct {
 //the send trace buffer
 typedef struct {
 	msg_trace send_trace_buffer_array[16];
+	int index;
 }send_trace_buffer;
 
 //the receive trace buffer
 typedef struct {
 	msg_trace receive_trace_buffer_array[16];
+	int index;
 } receive_trace_buffer;
 
 // Where is the iprocess timer queue?
@@ -199,6 +202,8 @@ int childpid[2];
 int fileid[2];
 char* KBfilename[8];
 char* CRTfilename[3];
+send_trace_buffer *send_tr_buf;
+receive_trace_buffer *receive_tr_buf;
 /**/
 
 
@@ -207,5 +212,4 @@ char* CRTfilename[3];
 #endif
 
 #endif	/* RTX_H */
-
 

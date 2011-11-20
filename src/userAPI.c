@@ -25,6 +25,16 @@ void atomic(int on) {
     }
 }
 
+int request_process_status(msg_envelope msg) {
+	int retCode = 0;
+	return retCode;
+}
+
+int get_trace_buffers (msg_envelope msg) {
+	int retCode = 0;
+	return retCode;
+}
+
 int terminate()
 {
 	int retCode = 0;	
@@ -129,4 +139,24 @@ msg_envelope *request_msg_env()
     atomic(OFF);
     
     return temp;
+}
+
+int request_delay(int time_delay,int wakeup_code,msg_envelope* message_envelope)
+{
+    int retCode;
+    atomic(ON);
+    retCode=k_request_delay(time_delay,wakeup_code,message_envelope);
+    atomic(OFF);
+
+    return retCode;
+}
+
+int release_processor()
+{
+    int retCode;
+    atomic(ON);
+    retCode=k_release_processor();
+    atomic(OFF);
+    
+    return retCode;
 }

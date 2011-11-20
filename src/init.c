@@ -49,6 +49,9 @@ int initialize_data() {
    blocked_on_resource_Q->head = NULL;
    blocked_on_resource_Q->tail = NULL;
 
+   send_tr_buf = (send_trace_buffer *) malloc(sizeof(send_trace_buffer)); //Allocate memory for send trace buffer
+   receive_tr_buf = (receive_trace_buffer *) malloc(sizeof(receive_trace_buffer)); //Allocate memory for receive trace buffer
+
    sorted_timeout_list = (msg_queue *) malloc(sizeof(msg_queue)); //Allocate memory for timeout list queue
 
    free_env_Q = (msg_queue *) malloc(sizeof(msg_queue)); //Allocate memory for free_env_q 
