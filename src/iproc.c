@@ -32,8 +32,6 @@ void kb_iproc(){
 		//check if the buffer is ready for transmitting
                 if (in_mem_ptr->flag == 1)
 		{
-			printf("IPROCKBD: calling receive...\n");	
-
 			if (msg_env == NULL) {
 			   printf("KBD_IPROC: message env is null\n");
 			}
@@ -44,7 +42,7 @@ void kb_iproc(){
 				printf("KBD_IPROC: Setting the kb flag to zero!\n");
 				fflush(stdout);
 				in_mem_ptr->flag = 0;
-				printf("KBD_IPROC: copying contents into message to be sent to process P\n"); 
+				printf("KBD_IPROC: copying contents into message to be sent to process CCI\n"); 
 				fflush(stdout);				
 				int count;
 				for(count = 0;count<in_mem_ptr->input_count;count++)
@@ -53,7 +51,8 @@ void kb_iproc(){
 				}
 				msg_env->msg_size = in_mem_ptr->input_count;
 				in_mem_ptr->input_count = 0;								
-				printf("KBD_IPROC: sending message to process CCI\n"); fflush(stdout);				
+				printf("KBD_IPROC: sending message to process CCI\n"); fflush(stdout);		
+				msg_env->msg_type = CONSOLE_INPUT;		
 				k_send_message(PROC_CCI, msg_env);
 			}		
 		}
@@ -69,12 +68,7 @@ void crt_iproc()
 	if (msg != NULL) {
 
 		fflush(stdout);
-		printf("Message from process P was: %c\n", msg->msg_text[0]);
-		//waiting for flag to become 0 so that the buffer is ready to be filled
-		while (out_mem_ptr->flag == 1)
-		{
-			usleep(100000);
-		}
+		printf("crt_iproc: Message from sender process was: %c\n", msg->msg_text[0]);
 
 		//fill buffer		
 		int count;
@@ -96,7 +90,7 @@ void crt_iproc()
 		msg->msg_type = DISPLAY_ACK;
 		error_code = k_send_message(PROC_C, msg);
 		fflush(stdout);
-		printf("Signal from CRT has been received. Acknowledgment sent back to process P\n");
+		printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
 		fflush(stdout);
 	} else {		
 	
@@ -130,18 +124,18 @@ void timer_iproc() {
 		msg = sorted_timeout_list->head;
 		if (msg != NULL) {
 		    	msg->n_clock_ticks--;
-			printf("Clock tick:%i\n", msg->n_clock_ticks);
+			printf("timer_iproc: Clock tick:%i\n", msg->n_clock_ticks);
 		}
 		while (msg->next) {
 			msg->n_clock_ticks--;
 		}
 
-		printf("Checking for expired message envelope\n");
+		printf("timer_iproc: Checking for expired message envelope\n");
 		while (sorted_timeout_list->tail != NULL)
 		{
 			if (sorted_timeout_list->tail->n_clock_ticks == 0) {
 				msg = msg_dequeue(sorted_timeout_list);//Dequeue the expired message from the sender
-				printf("Returning message back to the sender\n");
+				printf("timer_iproc: Returning message back to the sender\n");
 			    k_send_message(msg->sender_pid, msg);//return envelope to the sender
 			} else {
 				break;

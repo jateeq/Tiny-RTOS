@@ -8,8 +8,7 @@
 
 void process_CCI() {
 
-	fflush(stdout);
-	printf("hello CCI invoked"); 	
+	printf("CCI invoked\n"); 	
 	fflush(stdout);
 	msg_envelope * msg;
 	int error;
@@ -20,37 +19,40 @@ void process_CCI() {
 	int invalid; 
 	while (1) {
 		if (current_process->msg_envelope_q.size == 0) {
-			if (msg == NULL) {
-				msg = request_msg_env();
-			}	
+			msg = request_msg_env();
 			error = get_console_chars(msg);
 		}
 		msg = receive_message();
-		
-		if (msg->msg_type == CONSOLE_INPUT) {
 
+		if (msg == NULL) {
+		   printf("process_CCI: Received a NULL message!!");
+		}
+
+		if (msg->msg_type == CONSOLE_INPUT) {
+									
+			printf("process_CCI: Message from keyboard has been received. Message type: %i Message content: %s\n", msg->msg_type, msg->msg_text);
 			error = 0;
 			invalid = 0;
 			int i;
 
 			//check if the beginning of the message starts with "CCI:_"
-			for (i=0; i<5; i++) {
+			/*for (i=0; i<5; i++) {
 				if(msg->msg_text[i] != std_array[i]) {
 					invalid = 1; //invalid input
 				}
 				else {
 					invalid = 1;
 				}
-			}
+			}*/
 			if (invalid == 0) {// passes previous test
 
 				//send message to process A
-				if (msg->msg_text[5] == 's' && msg->msg_size == 6) {
+				if (msg->msg_text[0] == 's' && msg->msg_size == 6) {
 					error = send_message(PROC_A, msg);
 				}
 
 				//display process status
-				else if (msg->msg_text[5] == 'p' && msg->msg_text[6] == 's' && msg->msg_size == 7) {
+				else if (msg->msg_text[0] == 'p' && msg->msg_text[1] == 's') {
 					error = request_process_status(msg);
 				}
 		
@@ -69,23 +71,23 @@ void process_CCI() {
 				}
 				*/
 				//Turn on wall clock
-				else if (msg->msg_text[5]=='c' && msg->msg_text[6]=='d' && msg->msg_size==7) {
+				else if (msg->msg_text[0]=='c' && msg->msg_text[1]=='d') {
 					msg->msg_type = SHOW_CLOCK; 
 					error = send_message(PROC_CLK, msg);
 				}
 				//Turn off wall clock
-				else if (msg->msg_text[5]=='c' && msg->msg_text[6]=='t' && msg->msg_size==7) {
+				else if (msg->msg_text[0]=='c' && msg->msg_text[1]=='t') {
 					msg->msg_type = STOP_CLOCK;
 					error = send_message(PROC_CLK, msg); 
 				}
 
 				//get trace buffers
-				else if (msg->msg_text[5] =='b' && msg->msg_size==6) {
+				else if (msg->msg_text[0] =='b') {
 					error = get_trace_buffers(msg);		
 				}
 				
 				//terminate
-				else if (msg->msg_text[5]=='t' && msg->msg_size==6) {
+				else if (msg->msg_text[0] =='t') {
 					error = terminate();
 				}
 				//change priority
@@ -118,7 +120,7 @@ void process_CCI() {
 		}
 		if (invalid == 1) {
 			fflush(stdout);
-			printf("CCI receives message not for CONSOLE_INPUT");
+			printf("CCI receives message not for CONSOLE_INPUT\n");
 		}
 		// we should get rid of the envelope in possession
 		if (msg != NULL) {
@@ -135,7 +137,7 @@ void process_A()
 		temp = receive_message();
 		if (temp != NULL){
 			fflush(stdout);
-			printf("MESSAGE RECEIVED YES!");
+			printf("MESSAGE RECEIVED YES!\n");
 		}	
 	}
 

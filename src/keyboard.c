@@ -29,6 +29,8 @@ int main(int argc, char* argv[])
 
 	sigset(SIGINT, in_die);
 
+	printf("Keyboard process is created!\n");
+
 	/*fid = open("mmapfile", O_RDWR);
 	if (fid == -1)
 	{

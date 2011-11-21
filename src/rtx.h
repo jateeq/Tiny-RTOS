@@ -39,12 +39,6 @@ extern "C" {
 //wakeup codes (unique for each process)
 #define WALL_CLK_WAKEUPCODE 0
 #define PROC_C_WAKEUP_CODE 8
-	
-//Process priorities
-#define IPROCESS 0 //used for iprocesses
-#define High 1
-#define MEDIUM 2
-#define LOW 3
 
 //Process state
 #define READY 0	
@@ -95,7 +89,7 @@ extern "C" {
 
 #define NUM_MSG_ENV 60
 #define PCB_QUEUE_COUNT 4
-#define STACK_SIZE 4096
+#define STACK_SIZE 16384
 #define STACK_OFFSET 8
 /**/
 
@@ -138,7 +132,6 @@ typedef struct PCB{
    int process_priority;
    int process_state;
    void (*initial_pc)();
-   int priority;
    char *process_stack;
    jmp_buf *context;
    msg_queue msg_envelope_q;
@@ -190,12 +183,13 @@ msg_queue *sorted_timeout_list;//used by timer services to store timeout request
 ready_process_queue *rpq; //rpq
 input_buffer *in_mem_ptr; // Pointer to input buffer
 output_buffer *out_mem_ptr; // Pointer to  output buffer
-PCB* pcb_pointer_tracker[8]; //Process list
+PCB* pcb_pointer_tracker[NUM_TOTAL_PROC]; //Process list
 char* input_filename; //file address of shared RX mapped file
 char* output_filename; //file address of shared TX mapped file
 caddr_t *mmap_ptr;
 PCB* current_process;
 int kernel_clock;
+int atomic_count;
 int childpid[2];
 int fileid[2];
 char* KBfilename[8];

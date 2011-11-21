@@ -33,7 +33,7 @@ int IPROC_CRT_PRIORITY = IPROCESS;
 int IPROC_TIMER_PRIORITY = IPROCESS;
 int PROC_NULL_PRIORITY = LOW; 
 
-initialization_table init_table[8]; //Declare an array of initialization_table
+initialization_table init_table[NUM_TOTAL_PROC]; //Declare an array of initialization_table
 char *jmpsp;
 jmp_buf kernel_buf;
 
@@ -82,7 +82,7 @@ int initialize_data() {
 
 void initialize_IT() {
 
- 	   init_table[0].process_id = PROC_A;
+ 	init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
 	init_table[0].stack_size = STACK_SIZE ;
     	init_table[0].initial_pc = (void*) process_A;
@@ -139,7 +139,7 @@ int initialize_process() {
 		}
 
 		pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
-		pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
+		pcb_pointer_tracker[i]->process_priority = init_table[i].process_priority;
 
 		char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + STACK_SIZE - STACK_OFFSET;
 		if (stack_temp == NULL) {
@@ -172,10 +172,16 @@ int initialize_process() {
                    _set_sp(jmpsp);
 #endif
 			if (setjmp (*pcb_pointer_tracker[i]->context) ==0){
-					longjmp (kernel_buf, 1);
+				longjmp (kernel_buf, 1);
 			} else {
-					current_process->process_state = EXECUTING;
-					current_process->initial_pc();
+				if(atomic_count > 0) {
+				    atomic(OFF);					
+				}
+				current_process->process_state = EXECUTING;
+				fflush(stdout);
+				printf("Init: Context switch to process %i has been performed\n", current_process->process_id);
+				fflush(stdout);
+				current_process->initial_pc();
 			}
 		}	   
     }
@@ -188,7 +194,7 @@ int initialize_process() {
             }
 
             pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
-            pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
+            pcb_pointer_tracker[i]->process_priority = init_table[i].process_priority;
 
             char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + STACK_OFFSET;
             if (stack_temp == NULL) {
@@ -197,7 +203,7 @@ int initialize_process() {
 
             pcb_pointer_tracker[i]->process_stack = stack_temp;
             pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
-            pcb_pointer_tracker[i]->process_priority = READY;
+            pcb_pointer_tracker[i]->process_state = READY;
             pcb_pointer_tracker[i]->previous = NULL;
             pcb_pointer_tracker[i]->next = NULL;
             pcb_pointer_tracker[i]->msg_envelope_q.head = NULL;
@@ -226,7 +232,7 @@ int init_keyboard_process() {
      char arg_for_child2 [20]; // Two char array to store pid and fid
      
      sprintf(arg_for_child1, "%d", pid); 
-     sprintf(arg_for_child2, "%qd", fid); //Convert the id into character array
+     sprintf(arg_for_child2, "%d", fid); //Convert the id into character array
     
      int current_id = fork(); //Create kbd child process 	 	 
      if (current_id == 0) { //Check if this is child process
