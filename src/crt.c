@@ -26,6 +26,8 @@ int main (int argc, char * argv[]) {
 	// if parent tells us to terminate, then clean up first
 	sigset(SIGINT,out_die);
 
+	printf("CRT process is created!\n");
+
 	// get id of process to signal when we have input
 	// and the file id of the memory mapped file
 	// i.e. process input arguments 

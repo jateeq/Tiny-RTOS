@@ -21,34 +21,32 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     int i;
     int retCode = SUCCESS;
-    printf("Dest_process_id: %i\n", dest_process_id);
+    printf("k_send_message: Dest_process_id: %i\n", dest_process_id);
 	
     for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
     {
-	if (dest_process_id == pcb_pointer_tracker[i]->process_id)
+	if (dest_process_id == pcb_pointer_tracker[i]->process_id) 
 	    target_PCB = pcb_pointer_tracker[i];
     }
 
     msg_queue *temp_msg_q;
     temp_msg_q= &target_PCB->msg_envelope_q;
-    printf("Target process: %i\n",target_PCB->process_id);
+    printf("k_send_message: Target process: %i\n",target_PCB->process_id);
 
     //enqueue envelope onto the message queue of the target process
     msg_envelope->sender_pid = current_process->process_id;
     msg_envelope->receiver_pid = dest_process_id;
     retCode = msg_enqueue(msg_envelope, temp_msg_q);
-    fflush(stdout);
 
-    printf("check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
+    printf("k_send_message: check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
 
     if (target_PCB->msg_envelope_q.head==NULL)
 	printf("send failed: msg_envelope_q is null\n");
 
-    fflush(stdout);        
-
     if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
     {
 		target_PCB->process_state = READY;
+		printf("k_send_message:eEnquing process %i to rpq\n", target_PCB->process_id); 
 		retCode = rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
     }
 
@@ -73,6 +71,8 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].sender_pid = kernel_clock;
 	}
 
+	fflush(stdout);        
+
 	return SUCCESS;
 }
 
@@ -90,7 +90,7 @@ msg_envelope * k_receive_message()
 	msg_queue *temp_queue;
 	temp_queue = &current_process->msg_envelope_q;
 	msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
-	printf("%i",temp_envelope->sender_pid);
+	//printf("k_receive_message: Sender id is %i",temp_envelope->sender_pid);
 	//store the details of this receive transaction on the receive_trace_buffer
 	if (send_tr_buf->index == BUFFER_SIZE) {
 		//If the trace buffer is full
@@ -130,7 +130,7 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
     status1 = munmap(in_mem_ptr, 256); 
     status2 = munmap(out_mem_ptr, 256);
     
-    if (status1==-1 || status2==-1) // remove shared memory segment and do some standard error checks
+    if (status1==-1 || status2==-1) // remodve shared memory segment and do some standard error checks
     {
 	fflush(stdout);
         printf("BAD UNMAP\n");
@@ -151,8 +151,8 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
         }
     }
 
-    status1 = unlink("in_buf");
-    status2 = unlink("out_buf");
+    status1 = unlink("./build/in_buf");
+    status2 = unlink("./build/out_buf");
 
     if (status1==-1 || status2==-1)
     // remove shared memory segment and do some standard error checks
@@ -162,20 +162,20 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
         retCode = ERROR_BAD_FILE_UNLINK;
     }
  
-    printf("Deallocating data structures\n");   
-    printf("Free free envelope queue\n");
+    printf("K_terminate: Deallocating data structures\n");   
+    printf("K_terminate: Free free envelope queue\n");
     free(free_env_Q);
     
-    printf("Free blocked on resource queue\n");
+    printf("K_terminate: Free blocked on resource queue\n");
     free(blocked_on_resource_Q);
     
-    printf("Free sorted time list\n");
+    printf("K_terminate: Free sorted time list\n");
     free(sorted_timeout_list);
     
-    printf("Free RPQ\n");
+    printf("K_terminate: Free RPQ\n");
     free(rpq);     
     
-    printf("Free created PCBs (pcb_pointer_tracker\n");    
+    printf("K_terminate: Free created PCBs (pcb_pointer_tracker\n");    
     for (i=0; i < NUM_TOTAL_PROC; i++) //*******8 for full implementation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
         free(pcb_pointer_tracker[i]);
@@ -191,7 +191,7 @@ int k_send_console_chars(msg_envelope *message_envelope)
 {
     int retCode = SUCCESS;
     fflush(stdout);
-    printf("Sending message from process P to CRT\n");  
+    printf("Send_console_chars: Sending message from process P to CRT\n");  
     if (message_envelope != NULL)
     {		
         retCode = k_send_message(IPROC_CRT, message_envelope);
@@ -208,10 +208,10 @@ int k_get_console_chars(msg_envelope *message_envelope )
     
     if (message_envelope != NULL)
     {
-	printf("queue dequue: msg env: %d\n", message_envelope->msg_size);
+	printf("Get_console_chars: queue dequue: msg env: %d\n", message_envelope->msg_size);
 	retCode = k_send_message(IPROC_KBD, message_envelope);
 	fflush(stdout);
-	printf("get console chars was here\n");		
+	printf("Get console chars was called by %i\n", current_process->process_id);		
     }
     else
 	retCode = ERROR_INVALID_MID;
@@ -263,6 +263,7 @@ msg_envelope * k_request_msg_env()
     while (free_env_Q ==NULL)
     {
 	current_process->process_state = BLOCKED_ON_RECEIVE;
+	blocked_on_resource_Q_enqueue(current_process);
 	process_switch();
     }
     
@@ -290,7 +291,7 @@ int k_change_priority(int new_priority, int target_process_id)
                 temp = pcb_pointer_tracker[i];
         }
 	
-        temp->priority = new_priority;
+        temp->process_priority = new_priority;
         retCode = 0;
 		
         //invoke scheduler so that process is enqueued onto appropriate queue		

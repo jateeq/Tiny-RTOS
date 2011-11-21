@@ -5,7 +5,7 @@ int rpq_enqueue(PCB *PCB_to_enqueue) {
 	    return FAIL;
 	} 
 
-	int index = PCB_to_enqueue->priority - 1; 
+	int index = PCB_to_enqueue->process_priority - 1; 
 
 	if (rpq->pq_array[index]->size == 0) {
 		PCB_to_enqueue->next = NULL; //?	
@@ -14,10 +14,18 @@ int rpq_enqueue(PCB *PCB_to_enqueue) {
 		rpq->pq_array[index]->tail = PCB_to_enqueue;
 		rpq->pq_array[index]->size++;
 	} else {
-		PCB_to_enqueue->next = NULL;
+		PCB_to_enqueue->previous = NULL;
+		PCB_to_enqueue->next = rpq->pq_array[index]->head;
+		rpq->pq_array[index]->head->previous = PCB_to_enqueue;
+		rpq->pq_array[index]->head = PCB_to_enqueue;
+		rpq->pq_array[index]->size++;
+		/*
+		rpq->pq_array[index]->tail->next = PCB_to_enqueue;
 		PCB_to_enqueue->previous = rpq->pq_array[index]->tail;
 		rpq->pq_array[index]->tail = PCB_to_enqueue;
+		rpq->pq_array[index]->tail->next = NULL;
 		rpq->pq_array[index]->size++;
+		*/
 	}
 
 	return SUCCESS;
@@ -27,8 +35,7 @@ PCB *rpq_dequeue() {
 	int index = HIGH - 1;
 	
 	while (rpq->pq_array[index]->size == 0 && index < 4) {
-		if (index == 3 && rpq->pq_array[index]->size ==0) {
-		    //WTF??
+		if (index == 3 && rpq->pq_array[index]->size ==0) {	
                     printf("Error: Cannot find the PCB to deqeue!");
 		    return NULL;
 		}
@@ -36,23 +43,24 @@ PCB *rpq_dequeue() {
 	}
 
 	PCB *temp = rpq->pq_array[index]->tail; // Maybe we can just use the pointers we have in the pcb list?
-	if (temp->previous != NULL) {
-		temp->previous = NULL;
-	}
 
-	rpq->pq_array[index]->tail = NULL;
+	rpq->pq_array[index]->tail = temp->previous;
 	rpq->pq_array[index]->size--;
 	if (rpq->pq_array[index]->size == 0) {
 		rpq->pq_array[index]->head = NULL;
+		rpq->pq_array[index]->tail = NULL;
+	} else {
+		rpq->pq_array[index]->tail->next = NULL;	
+	}
+
+	if (temp->previous != NULL) {
+		temp->previous = NULL;
 	}
 
 	return temp;
 }
 
 int msg_enqueue(msg_envelope *msg_env, msg_queue *queue) {
-	fflush(stdout);
-	printf("msg_enqueue invoked\n"); 
-	fflush(stdout);
 	if (msg_env == NULL || queue == NULL) {
 		return FAIL;
 	}
@@ -64,10 +72,17 @@ int msg_enqueue(msg_envelope *msg_env, msg_queue *queue) {
 		queue->tail = msg_env;
 		queue->size++;
 	} else {
+		msg_env->previous = NULL;
+		msg_env->next = queue->head;
+		queue->head->previous = msg_env;
+		queue->head = msg_env;
+		queue->size++;		
+		/*
 		msg_env->previous = queue->tail;
 		msg_env->next = NULL;
 		queue->tail = msg_env;
 		queue->size++;
+		*/
 	}
 
 	return SUCCESS;
@@ -107,10 +122,18 @@ int blocked_on_resource_Q_enqueue(PCB *PCB_to_enqueue){
             PCB_to_enqueue->next = NULL;
             blocked_on_resource_Q->size++;
     } else {
+	    PCB_to_enqueue->previous = NULL;
+	    PCB_to_enqueue->next = blocked_on_resource_Q->head;
+	    blocked_on_resource_Q->head->previous = PCB_to_enqueue;
+	    blocked_on_resource_Q->head = PCB_to_enqueue;
+	    blocked_on_resource_Q->size++;
+	    /*
             PCB_to_enqueue->previous = blocked_on_resource_Q->tail;
-            blocked_on_resource_Q->tail = PCB_to_enqueue;
-            PCB_to_enqueue->next = NULL;
+            blocked_on_resource_Q->tail->next = PCB_to_enqueue;
+	    blocked_on_resource_Q->tail = PCB_to_enqueue;
+            blocked_on_resource_Q->tail->next = NULL;
             blocked_on_resource_Q->size++;
+	    */
     }
 
     return SUCCESS;
@@ -121,16 +144,20 @@ PCB *blocked_on_resource_Q_dequeue(){
 	if (blocked_on_resource_Q->size ==0) {
 		return NULL;
 	}
-	
-	PCB *temp = blocked_on_resource_Q->tail;
-	if (temp->previous != NULL) {
-		temp->previous = NULL;
-	}
 
-	blocked_on_resource_Q->tail = NULL;
+	PCB *temp = blocked_on_resource_Q->tail;
+	
+	blocked_on_resource_Q->tail = temp->previous;
 	blocked_on_resource_Q->size--;
 	if (blocked_on_resource_Q->size == 0) {
             blocked_on_resource_Q->head = NULL;
+	    blocked_on_resource_Q->tail = NULL;
+	} else {
+	    blocked_on_resource_Q->tail->next = NULL;
+	}
+
+	if (temp->previous != NULL) {
+		temp->previous = NULL;
 	}
         
     return temp;

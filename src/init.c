@@ -33,7 +33,7 @@ int IPROC_CRT_PRIORITY = IPROCESS;
 int IPROC_TIMER_PRIORITY = IPROCESS;
 int PROC_NULL_PRIORITY = LOW; 
 
-initialization_table init_table[8]; //Declare an array of initialization_table
+initialization_table init_table[NUM_TOTAL_PROC]; //Declare an array of initialization_table
 char *jmpsp;
 jmp_buf kernel_buf;
 
@@ -82,14 +82,14 @@ int initialize_data() {
 
 void initialize_IT() {
 
-    init_table[0].process_id = PROC_A;
+ 	init_table[0].process_id = PROC_A;
 	init_table[0].process_priority = PROC_A_PRIORITY;
 	init_table[0].stack_size = STACK_SIZE ;
-    init_table[0].initial_pc = (void*) process_A;
+    	init_table[0].initial_pc = (void*) process_A;
 
 	init_table[1].process_id = PROC_B;
 	init_table[1].process_priority = PROC_B_PRIORITY;
-    init_table[1].stack_size = STACK_SIZE;
+    	init_table[1].stack_size = STACK_SIZE;
 	init_table[1].initial_pc = (void*) process_B;
 	
 	init_table[2].process_id = PROC_C;
@@ -101,26 +101,31 @@ void initialize_IT() {
 	init_table[3].process_priority = PROC_CCI_PRIORITY;
 	init_table[3].stack_size = STACK_SIZE;
 	init_table[3].initial_pc = (void*) process_CCI;
-
-	init_table[4].process_id = PROC_NULL;
-	init_table[4].process_priority = PROC_NULL_PRIORITY;
+	
+	init_table[4].process_id = PROC_CLK;
+	init_table[4].process_priority = PROC_CLK_PRIORITY;
 	init_table[4].stack_size = STACK_SIZE;
-	init_table[4].initial_pc = (void*) process_NULL;
+	init_table[4].initial_pc = (void*) wall_clock;
 
-    init_table[5].process_id = IPROC_TIMER;
-	init_table[5].process_priority = IPROCESS;
+	init_table[5].process_id = PROC_NULL;
+	init_table[5].process_priority = PROC_NULL_PRIORITY;
 	init_table[5].stack_size = STACK_SIZE;
-    init_table[5].initial_pc = (void*) timer_iproc;
-        
-	init_table[6].process_id = IPROC_KBD;
+	init_table[5].initial_pc = (void*) process_NULL;
+
+    	init_table[6].process_id = IPROC_TIMER;
 	init_table[6].process_priority = IPROCESS;
 	init_table[6].stack_size = STACK_SIZE;
-	init_table[6].initial_pc = (void*) kb_iproc;
-
-	init_table[7].process_id = IPROC_CRT;
+    	init_table[6].initial_pc = (void*) timer_iproc;
+        
+	init_table[7].process_id = IPROC_KBD;
 	init_table[7].process_priority = IPROCESS;
 	init_table[7].stack_size = STACK_SIZE;
-	init_table[7].initial_pc = (void*) crt_iproc;
+	init_table[7].initial_pc = (void*) kb_iproc;
+
+	init_table[8].process_id = IPROC_CRT;
+	init_table[8].process_priority = IPROCESS;
+	init_table[8].stack_size = STACK_SIZE;
+	init_table[8].initial_pc = (void*) crt_iproc;
 }
 
 int initialize_process() {
@@ -134,7 +139,7 @@ int initialize_process() {
 		}
 
 		pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
-		pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
+		pcb_pointer_tracker[i]->process_priority = init_table[i].process_priority;
 
 		char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + STACK_SIZE - STACK_OFFSET;
 		if (stack_temp == NULL) {
@@ -167,15 +172,21 @@ int initialize_process() {
                    _set_sp(jmpsp);
 #endif
 			if (setjmp (*pcb_pointer_tracker[i]->context) ==0){
-					longjmp (kernel_buf, 1);
+				longjmp (kernel_buf, 1);
 			} else {
-					current_process->process_state = EXECUTING;
-					current_process->initial_pc();
+				if(atomic_count > 0) {
+				    atomic(OFF);					
+				}
+				current_process->process_state = EXECUTING;
+				fflush(stdout);
+				printf("Init: Context switch to process %i has been performed\n", current_process->process_id);
+				fflush(stdout);
+				current_process->initial_pc();
 			}
 		}	   
     }
 
-    for (i = 1; i < NUM_TOTAL_PROC; i++) {
+    for (i = NUM_OF_USER_PROC; i < NUM_TOTAL_PROC; i++) {
             pcb_pointer_tracker[i] = (PCB *) malloc(sizeof(PCB));
     
             if (pcb_pointer_tracker[i] == NULL) {
@@ -183,7 +194,7 @@ int initialize_process() {
             }
 
             pcb_pointer_tracker[i]->process_id = init_table[i].process_id;
-            pcb_pointer_tracker[i]->priority = init_table[i].process_priority;
+            pcb_pointer_tracker[i]->process_priority = init_table[i].process_priority;
 
             char *stack_temp = ((char*)malloc(init_table[i].stack_size)) + STACK_OFFSET;
             if (stack_temp == NULL) {
@@ -192,7 +203,7 @@ int initialize_process() {
 
             pcb_pointer_tracker[i]->process_stack = stack_temp;
             pcb_pointer_tracker[i]->initial_pc = init_table[i].initial_pc;
-            pcb_pointer_tracker[i]->process_priority = READY;
+            pcb_pointer_tracker[i]->process_state = READY;
             pcb_pointer_tracker[i]->previous = NULL;
             pcb_pointer_tracker[i]->next = NULL;
             pcb_pointer_tracker[i]->msg_envelope_q.head = NULL;

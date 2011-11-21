@@ -11,6 +11,7 @@ void atomic(int on) {
     static sigset_t oldmask;
     sigset_t newmask;
     if (on) {		
+		atomic_count++;
 		sigemptyset(&newmask);
 		sigaddset(&newmask, SIGALRM); //the alarm signal
 		sigaddset(&newmask, SIGINT); // the CNTRL-C
@@ -21,6 +22,7 @@ void atomic(int on) {
 	else 
 	{		
 		//unblock the signals
+		atomic_count--;
 		sigprocmask(SIG_SETMASK, &oldmask, NULL);
      }
 }
@@ -82,11 +84,16 @@ void process_switch( )
 {
     int error_code;
     //suspend 'current' process to release CPU
-    PCB * next_process; //hold pointer to the next process pcb
+    PCB *next_process; //hold pointer to the next process pcb
+    PCB *previous_process;
     next_process = (PCB *) rpq_dequeue( ); //pointer points to the next highest priority ready process 
-
-    context_switch( current_process->context, next_process->context ); //switch the context of 'current' process to 'next' process
-
+    previous_process = current_process; //Setting the current process as previous process
+    current_process = next_process; //Setting the current process PCB to the next process
+    if( current_process->process_id == 3)
+       printf("process_switch: Context switch between %i and %i \n", previous_process->process_id, current_process->process_id);
+    fflush(stdout);
+    context_switch( previous_process->context, next_process->context ); //switch the context of 'previous' process to 'next' process
+/*
     if (current_process->process_state== EXECUTING) {
         current_process->process_state = INTERRUPTED;
         error_code = rpq_enqueue(current_process);
@@ -94,7 +101,7 @@ void process_switch( )
     else if(current_process->process_state==BLOCKED_ON_ENVELOPE) {
         error_code = blocked_on_resource_Q_enqueue(current_process);
     }
-    current_process = next_process;// set 'current_process' to point to next's PCB
+    current_process = next_process;// set 'current_process' to point to next's PCB*/
 
 }
 
