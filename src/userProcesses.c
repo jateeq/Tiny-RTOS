@@ -96,10 +96,10 @@ void process_CCI() {
 				else if (msg->msg_text[0] =='t') {
 					error = terminate();
 				}
+
 				//change priority
-				//********ATTN: not sure how atoi works******
-				/*
-				else if (msg->msg_text[5]=='n' && msg->text[6]==' ' && atoi(msg->msg_text[7])<=9 && msg->text[8]==' ' && atoi(msg->msg_text[9])<=9) {
+/*
+				else if (msg->msg_text[0]=='n') {
 					if (atoi(msg->msg_text[9]) == PROC_NULL)
 						//do something to handle this case. For now, just printf
 						fflush(stdout);
@@ -115,8 +115,6 @@ void process_CCI() {
 					}
 				}
 				*/
-				
-				
 				//default case: if all above cases fall through
 				else {
 					invalid = 1; 
