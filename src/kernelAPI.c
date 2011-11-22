@@ -21,7 +21,6 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     int i;
     int retCode = SUCCESS;
-    printf("k_send_message: Dest_process_id: %i\n", dest_process_id);
 	
     for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
     {
@@ -31,14 +30,14 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     msg_queue *temp_msg_q;
     temp_msg_q= &target_PCB->msg_envelope_q;
-    printf("k_send_message: Target process: %i\n",target_PCB->process_id);
+    printf("k_send_message: Target process: %i, current process: %i\n",target_PCB->process_id, current_process->process_id);
 
     //enqueue envelope onto the message queue of the target process
     msg_envelope->sender_pid = current_process->process_id;
     msg_envelope->receiver_pid = dest_process_id;
     retCode = msg_enqueue(msg_envelope, temp_msg_q);
 
-    printf("k_send_message: check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
+    //printf("k_send_message: target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
 
     if (target_PCB->msg_envelope_q.head==NULL)
 	printf("send failed: msg_envelope_q is null\n");
@@ -46,7 +45,7 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
     if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
     {
 		target_PCB->process_state = READY;
-		printf("k_send_message:eEnquing process %i to rpq\n", target_PCB->process_id); 
+		printf("k_send_message:Enquing process %i to rpq\n", target_PCB->process_id); 
 		retCode = rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
     }
 
@@ -64,7 +63,7 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 		send_tr_buf->send_trace_buffer_array[BUFFER_SIZE].receiver_pid = msg_envelope->receiver_pid;
 		send_tr_buf->send_trace_buffer_array[BUFFER_SIZE].time = kernel_clock;
 	} else {
-		printf("sid: %c rid: %c t: %c\n", msg_envelope->sender_pid, msg_envelope->receiver_pid, kernel_clock);
+		//printf("sid: %c rid: %c t: %c\n", msg_envelope->sender_pid, msg_envelope->receiver_pid, kernel_clock);
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].sender_pid = msg_envelope->sender_pid;
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].receiver_pid = msg_envelope->receiver_pid;
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].time = kernel_clock;
@@ -190,11 +189,18 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
 int k_send_console_chars(msg_envelope *message_envelope)
 {
     int retCode = SUCCESS;
+    printf("Send_console_chars: invoked\n");
     fflush(stdout);
-    printf("Send_console_chars: Sending message from process P to CRT\n");  
     if (message_envelope != NULL)
-    {		
-        retCode = k_send_message(IPROC_CRT, message_envelope);
+    {	
+		if (message_envelope->msg_type == OUTPUT_REQUEST) {
+		    retCode = k_send_message(IPROC_CRT, message_envelope);
+			kill(getpid(), SIGUSR2);
+		}
+		else {
+			printf("send_console_chars: trying to output msg with invalid msg type\n"); 
+			retCode = ERROR_INVALID_MID; 
+		}
     }
     else
     	retCode = ERROR_INVALID_MID;
@@ -208,10 +214,11 @@ int k_get_console_chars(msg_envelope *message_envelope )
     
     if (message_envelope != NULL)
     {
-	printf("Get_console_chars: queue dequue: msg env: %d\n", message_envelope->msg_size);
-	retCode = k_send_message(IPROC_KBD, message_envelope);
+	//printf("Get_console_chars: queue dequue: msg env: %d\n", message_envelope->msg_size);
 	fflush(stdout);
-	printf("Get console chars was called by %i\n", current_process->process_id);		
+	retCode = k_send_message(IPROC_KBD, message_envelope);
+	printf("Get console chars was called by %i\n", current_process->process_id);
+	fflush(stdout);
     }
     else
 	retCode = ERROR_INVALID_MID;
@@ -402,11 +409,11 @@ int k_request_process_status(msg_envelope * msg) {
 
 	outputformat = "Process_ID,Priority,Status\n";
 	for (i=0; i<NUM_OF_PROC; i++) {
-		strcat(outputformat, pcb_pointer_tracker[i]->process_id);
+		strcat(outputformat, (char *) pcb_pointer_tracker[i]->process_id);
 		strcat(outputformat, ",");
-		strcat(outputformat, pcb_pointer_tracker[i]->process_priority);
+		strcat(outputformat, (char *) pcb_pointer_tracker[i]->process_priority);
 		strcat(outputformat, ",");
-		strcat(outputformat, pcb_pointer_tracker[i]->process_state);
+		strcat(outputformat, (char *) pcb_pointer_tracker[i]->process_state);
 		strcat(outputformat, "\n");
 	}
 

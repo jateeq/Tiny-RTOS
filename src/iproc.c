@@ -37,12 +37,9 @@ void kb_iproc(){
 			}
 			else
 			{			
-			  	printf("KBD_IPROC: message reveived!\n");
-				printf("KBD IPROC: msg env: %d\n", msg_env->msg_size);
-				printf("KBD_IPROC: Setting the kb flag to zero!\n");
+				//printf("KBD IPROC: msg env: %d\n", msg_env->msg_size);
 				fflush(stdout);
 				in_mem_ptr->flag = 0;
-				printf("KBD_IPROC: copying contents into message to be sent to process CCI\n"); 
 				fflush(stdout);				
 				int count;
 				for(count = 0;count<in_mem_ptr->input_count;count++)
@@ -51,7 +48,8 @@ void kb_iproc(){
 				}
 				msg_env->msg_size = in_mem_ptr->input_count;
 				in_mem_ptr->input_count = 0;								
-				printf("KBD_IPROC: sending message to process CCI\n"); fflush(stdout);		
+				printf("KBD_IPROC: sending message to process CCI\n"); 
+				fflush(stdout);		
 				msg_env->msg_type = CONSOLE_INPUT;		
 				k_send_message(PROC_CCI, msg_env);
 			}		
@@ -61,42 +59,58 @@ void kb_iproc(){
 
 void crt_iproc()
 {
-	msg_envelope * msg; 
-	int error_code;
-	msg = (msg_envelope *) k_receive_message();   
+	printf("=========CRT IPROC is invoked========\n");
+	fflush(stdout);
+	int error_code; 
+	msg_envelope * temp; 
+	temp = current_process->msg_envelope_q.head; 
+	printf("crt_iproc: CRT message queue size: %i\n", current_process->msg_envelope_q.size);
+	int error; 
+	if (temp != NULL) {
+		if (temp->msg_type == OUTPUT_REQUEST) {
+			fflush(stdout);
+			printf("crt_iproc: Message from sender process was: %c\n", temp->msg_text[0]);
 
-	if (msg != NULL) {
+			//fill buffer		
+			int count;
+			printf("CRT IPROC: Copying %i characters.\n", temp->msg_size);
+			out_mem_ptr->output_count = 0;
 
-		fflush(stdout);
-		printf("crt_iproc: Message from sender process was: %c\n", msg->msg_text[0]);
-
-		//fill buffer		
-		int count;
-		printf("CRT IPROC: Copying %i characters.\n", msg->msg_size);
-		for(count = 0; count < msg->msg_size; count++)
-                {
-                    out_mem_ptr->output_data[count] = msg->msg_text[count];
-                }
-		out_mem_ptr->flag = 1;
-		out_mem_ptr->output_count = msg->msg_size;
-		//waiting for flag to become 0 to indicate CRT has finished output
-		while (out_mem_ptr->flag == 1)
-		{
-			usleep(100000);
+			for(count = 0; count < temp->msg_size; count++)
+		            {
+		                out_mem_ptr->output_data[count] = temp->msg_text[count];
+						out_mem_ptr->output_count++;
+		            }
+			temp->msg_type = OUTPUT_CONFIRM; 
+			//get rid of this dangerous code
+			out_mem_ptr->flag = 1;
 		}
-		//send confirmation message to invoking process		
-		msg->receiver_pid = msg->sender_pid;
-		msg->sender_pid = current_process->process_id; 
-		msg->msg_type = DISPLAY_ACK;
-		error_code = k_send_message(PROC_C, msg);
-		fflush(stdout);
-		printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
-		fflush(stdout);
+
+		else if (temp->msg_type == OUTPUT_CONFIRM) {
+			fflush(stdout);
+			printf("crt_iproc: trying to send confirmation\n");
+			fflush(stdout);
+			//waiting for flag to become 0 to indicate CRT has finished output
+			while (out_mem_ptr->flag == 1)
+			{
+				usleep(100000);
+			}
+			//send and receive confirmation message to invoking process		
+			temp = k_receive_message(); 
+			temp->receiver_pid = temp->sender_pid;
+			temp->sender_pid = current_process->process_id; 
+			temp->msg_type = DISPLAY_ACK;
+			error_code = k_send_message(PROC_CCI, temp);
+			fflush(stdout);
+			printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
+			fflush(stdout);
+		}
 	} else {		
-	
+		printf("crt_iproc: head is NULL");
 	}
     return; 
 }
+
 
 void timer_iproc() {
 	//Increment internel kernel clock (in ms)
@@ -180,6 +194,4 @@ void signal_handler(int signum)
 	                	current_process->process_state = EXECUTING;
 				break;
 	}	
-} 	
-
-
+}

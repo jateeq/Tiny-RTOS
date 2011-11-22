@@ -89,7 +89,7 @@ void process_switch( )
     next_process = (PCB *) rpq_dequeue( ); //pointer points to the next highest priority ready process 
     previous_process = current_process; //Setting the current process as previous process
     current_process = next_process; //Setting the current process PCB to the next process
-    if( current_process->process_id == 3)
+    if( current_process->process_id != 5 || previous_process->process_id != 5)
        printf("process_switch: Context switch between %i and %i \n", previous_process->process_id, current_process->process_id);
     fflush(stdout);
     context_switch( previous_process->context, next_process->context ); //switch the context of 'previous' process to 'next' process

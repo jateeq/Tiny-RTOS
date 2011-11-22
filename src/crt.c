@@ -67,11 +67,8 @@ int main (int argc, char * argv[]) {
 			printf("\n");
 			out_mem_ptr->flag = 0; 
 			out_mem_ptr->output_count = 0;
+			kill(parent_pid, SIGUSR2); 
 		}
-		fflush(stdout);
-		//printf("CRT is signalling RTX\n"); 
-		fflush(stdout);
-		usleep(100000);
-		kill(parent_pid, SIGUSR2); 
+		usleep(100000); 
 	}
 }
