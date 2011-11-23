@@ -173,11 +173,11 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
     printf("K_terminate: Free RPQ\n");
     free(rpq);     
     
-    printf("K_terminate: Free created PCBs (pcb_pointer_tracker\n");    
+    printf("K_terminate: Free created PCBs (pcb_pointer_tracker)\n");    
     for (i=0; i < NUM_TOTAL_PROC; i++) //*******8 for full implementation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
         free(pcb_pointer_tracker[i]);
-	printf("%i\n",i);
+	printf("K_terminate: Process %i freed\n",i);
     }     
 
     kill(getpid(), SIGINT); 
@@ -281,15 +281,18 @@ msg_envelope * k_request_msg_env()
 int k_change_priority(int new_priority, int target_process_id)
 {
     PCB *temp;
-    int retCode;
+    int retCode = SUCCESS;
     
-    if (new_priority==0)
+    if (new_priority < 1 || new_priority > 4)
         return ERROR_INVALID_PID;
     
-    else if (target_process_id==0)
+    else if (target_process_id < 0 || target_process_id > 4)
         return ERROR_INVALID_PRIORITY;
     else
     {        
+
+	printf("k_change_priority: Changing the priority of the process %i to %i\n", target_process_id, new_priority);
+
         int i;
         for (i = 0;i < NUM_OF_USER_PROC;i++)
         {
@@ -299,9 +302,18 @@ int k_change_priority(int new_priority, int target_process_id)
 	
         temp->process_priority = new_priority;
         retCode = 0;
-		
-        //invoke scheduler so that process is enqueued onto appropriate queue		
-    }
+	
+ 	//Invoke scheduler so that process is enqueued onto appropriate level of rpq, if it is in rpq	
+	
+	if (temp->process_state == READY) {
+	    printf("k_change_priority: The process %is status is ready. Putting into appropriate position in rpq\n", temp->process_id);
+	    remove_PCB_from_rpq(temp->process_id);
+	    retCode = rpq_enqueue(temp);
+	    printf("K_change_priority: The process %i's relocated in rpq\n", rpq->pq_array[temp->process_priority-1]->head->process_id);
+	}	
+
+	printf("k_change_priority: The process %i's priority is now %i\n", temp->process_id, temp->process_priority);
+     }
 	return retCode;
 }
 
@@ -349,7 +361,7 @@ int k_get_trace_buffers(msg_envelope *env) {
 			strcat(output_format, "\n\n");
 
 			int str_size = strlen(output_format);
-			char output[str_size - 1];
+			char output[str_size];
 			strcpy(output, output_format);
 			i = env->msg_size + str_size - 1;
 			j = 0;
@@ -386,7 +398,7 @@ int k_get_trace_buffers(msg_envelope *env) {
 			//output_format =" Receiver ID: " + *rid + "Sender ID: " + *sid + "Time: " + *t + "\n";
 
 			int str_size = strlen(output_format);
-			char output[str_size - 1];
+			char output[str_size];
 			strcpy(output, output_format);
 			i = env->msg_size + str_size - 1;
 			j = 0;

@@ -98,23 +98,15 @@ void process_CCI() {
 				}
 
 				//change priority
-/*
-				else if (msg->msg_text[0]=='n') {
-					if (atoi(msg->msg_text[9]) == PROC_NULL)
-						//do something to handle this case. For now, just printf
-						fflush(stdout);
-						printf("cannnot change null process priority");
-					}
-					else if (atoi(msg->msg_text[7]) > 3 || atoi(msg->msg_text[9]) > NUM_OF_PROCESSES || atoi(msg->msg_text[7]) < 0) {
-						//do something to handle this case. Fllor now, just printf
-						fflush(stdout);
-						printf("cannnot change null process priority");
-					}
-					else {
-						error = change_priority( atoi(msg->msg_text[7]), atoi(msg->msg_text[9]) );
-					}
+				else if (msg->msg_text[0]=='n' && msg->msg_text[1]==' ' && msg->msg_text[3]==' ' && msg->msg_size == 5 ) {
+					int priority;
+					int pid;
+					sscanf(&msg->msg_text[2], "%i", &priority);
+					sscanf(&msg->msg_text[4], "%i", &pid);
+					printf("CCI: Process %i is receiving new priority %i\n", pid, priority);
+					error = change_priority( priority,pid);
 				}
-				*/
+				
 				//default case: if all above cases fall through
 				else {
 					invalid = 1; 

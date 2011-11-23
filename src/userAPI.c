@@ -163,3 +163,14 @@ int release_processor()
     
     return retCode;
 }
+
+int change_priority(int new_priority, int target_process_id)
+{
+    int retCode;
+    atomic(ON);
+    retCode=k_change_priority(new_priority, target_process_id);
+    atomic(OFF);
+    
+    return retCode;
+}
+
