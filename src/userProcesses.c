@@ -5,6 +5,7 @@
 #include "userAPI.h"
 #include "rtx.h"
 #define MAX_COMMAND_DATA_SIZE 8
+#define TIME_SIZE 8
 
 void process_CCI() {
 
@@ -124,7 +125,7 @@ void process_CCI() {
 		}
 		// we should get rid of the envelope in possession
 		if (msg != NULL) {
-			error = release_msg_env(msg);
+			//error = release_msg_env(msg);
 		}
 	}
 }				
@@ -248,7 +249,7 @@ void process_NULL()
 void wall_clock() {
 
 	//this section is only going to run once during the lifetime of the rtx
-    int time = 0;
+    char time[TIME_SIZE] = "00:00:00";
 	int clock_status = OFF;	
 	int awake = 1;
 	int time_set = 0; //determines whether the user set the time or not - used while displaying the time
@@ -257,6 +258,7 @@ void wall_clock() {
 	char command_data[MAX_COMMAND_DATA_SIZE];
 	msg_envelope * msg = NULL;
 	msg_envelope * crt_msg = NULL;	
+	int i;
 	
 	//this section should run forever once all variables have been initialized
 	do {			 
@@ -267,15 +269,14 @@ void wall_clock() {
 		//parse the message text to get the command and other data out
 		
 		if (msg != NULL)
-		{
-			int i = 0;
-			
+		{	
 			//get the command entered by user
 			command = msg->msg_type;			
 			
 			switch(command)
 			{
-				case 4: 	//set wall clock time
+				case CHANGE_CLOCK: 	//set wall clock time
+					printf("wALL CLOCK: setting wall clock time");fflush(stdout);
 					command_data[0] = msg->msg_text[0];
 					command_data[1] = msg->msg_text[1];
 					command_data[2] = ' ';
@@ -286,11 +287,14 @@ void wall_clock() {
 					command_data[7] = msg->msg_text[5];	
 					
 					time_set = 1;
+					printf("wALL CLOCK: time is: %s", command_data);
 					break;
-				case 5: 	//turn wall clock display off
+				case STOP_CLOCK: 	//turn wall clock display off
+					printf("turning off clock");fflush(stdout);
 					clock_status =  OFF;
 					break;
-				case 6: 	//turn wall clock display on					
+				case SHOW_CLOCK: 	//turn wall clock display on	
+					printf("wALL CLOCK: turning on clock");fflush(stdout);
 					clock_status = ON;
 					break;					
 			}
@@ -305,6 +309,9 @@ void wall_clock() {
 			{
 				while(crt_msg == NULL)
 					crt_msg = request_msg_env(); //request envelope to send message to crt
+				for(i =0;i<TIME_SIZE;i++)
+					crt_msg->msg_text[i] = time[i];
+				crt_msg->msg_size = TIME_SIZE;
 				temp = send_console_chars(crt_msg); //send to the crt the updated time
 			}
 			
