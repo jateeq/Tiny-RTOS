@@ -18,6 +18,8 @@ void process_CCI() {
 
 	int invalid; 
 	while (1) {
+		printf("CCI starting loop\n");
+		fflush(stdout);
 		if (current_process->msg_envelope_q.size == 0) {
 			msg = request_msg_env();
 			error = get_console_chars(msg);

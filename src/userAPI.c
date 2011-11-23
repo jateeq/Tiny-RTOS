@@ -30,7 +30,7 @@ void atomic(int on) {
 int request_process_status(msg_envelope* env) {
 	int retCode = 0;
 	atomic(ON); 
-	retCode = request_process_status(env);
+	retCode = k_request_process_status(env);
 	atomic(OFF);
 	return retCode;
 }

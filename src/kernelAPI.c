@@ -201,9 +201,11 @@ int k_send_console_chars(msg_envelope *message_envelope)
 			retCode = ERROR_INVALID_MID; 
 		}
     }
-    else
+    else {
+		printf("send console chars: NULL message?\n");
+		fflush(stdout);
     	retCode = ERROR_INVALID_MID;
-		
+	}
     return retCode;
 }
 
@@ -424,29 +426,32 @@ int k_get_trace_buffers(msg_envelope *env) {
 }
 
 int k_request_process_status(msg_envelope * msg) {
-	int i;
-	char *outputformat;
-	int retCode;
-	retCode = 0;
+	int i; 	int j=0;
+	char outputformat[127];
+	int retCode = 0;
+	char pid[1]; char pri[1]; char pst[1]; 
 
-	outputformat = "Process_ID,Priority,Status\n";
-	for (i=0; i<NUM_OF_PROC; i++) {
-		strcat(outputformat, (char *) pcb_pointer_tracker[i]->process_id);
+	msg->msg_text[0] = 'P'; msg->msg_text[1] = 'I'; msg->msg_text[2] = 'D'; msg->msg_text[3] = ','; msg->msg_text[4] = 'P'; msg->msg_text[5] = 'r'; msg->msg_text[6] = 'i'; msg->msg_text[7] = 'o'; msg->msg_text[8] = 'r'; msg->msg_text[9] = 'i'; msg->msg_text[10] = 't'; msg->msg_text[11] = 'y'; msg->msg_text[12] = ','; msg->msg_text[13] = 'S'; msg->msg_text[14] = 't'; msg->msg_text[15] = 'a'; msg->msg_text[16] = 't'; msg->msg_text[17] = 'e'; msg->msg_text[18] = '\n';
+	msg->msg_size = 19;	
+
+	for (i=0; i<9; i++) {
+		sprintf(pid, "%i", pcb_pointer_tracker[i]->process_id);
+		sprintf(pri, "%i", pcb_pointer_tracker[i]->process_priority);
+		sprintf(pst, "%i", pcb_pointer_tracker[i]->process_state);
+		strncat(outputformat, pid, 1);
 		strcat(outputformat, ",");
-		strcat(outputformat, (char *) pcb_pointer_tracker[i]->process_priority);
+		strncat(outputformat, pri, 1);
 		strcat(outputformat, ",");
-		strcat(outputformat, (char *) pcb_pointer_tracker[i]->process_state);
+		strncat(outputformat, pst, 1);
 		strcat(outputformat, "\n");
+		int str_size = strlen(outputformat);
+		for (j=0; j<str_size; j++) {
+			msg->msg_text[msg->msg_size] = outputformat[j];
+			msg->msg_size++;
+		}
 	}
 
-	int str_size = strlen(outputformat);
-	char output[str_size];
-	strcpy(output, outputformat);
-	msg->msg_size = 0;
-	for (i=0; i<str_size; i++) {
-		msg->msg_text[i] = output[i];
-		msg->msg_size++;
-	}
-	retCode = send_console_chars(msg);
+	msg->msg_type = OUTPUT_REQUEST; 
+	retCode = k_send_console_chars(msg);
 	return retCode;
 }

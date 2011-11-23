@@ -186,6 +186,7 @@ void signal_handler(int signum)
 	               		current_process->process_state = EXECUTING;
 				break;
 			case SIGUSR2: // crt handler
+				fflush(stdout); 
 				current_process->process_state = INTERRUPTED;
 				previous_process = current_process;
 				current_process = pcb_pointer_tracker[IPROC_CRT];
