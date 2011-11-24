@@ -88,7 +88,8 @@ void crt_iproc()
 		msg->receiver_pid = msg->sender_pid;
 		msg->sender_pid = current_process->process_id; 
 		msg->msg_type = DISPLAY_ACK;
-		error_code = k_send_message(PROC_C, msg);
+		//error_code = k_send_message(PROC_C, msg);
+		error_code = k_send_message(msg->receiver_pid, msg);
 		fflush(stdout);
 		printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
 		fflush(stdout);
@@ -149,6 +150,7 @@ void timer_iproc() {
 
 void signal_handler(int signum)
 {    
+	PCB* temp;
 	PCB* previous_process;
 	switch(signum)
 	{
@@ -171,13 +173,13 @@ void signal_handler(int signum)
 	                	current_process = previous_process;
 	               		current_process->process_state = EXECUTING;
 				break;
-			case SIGUSR2: // crt handler
+			case SIGUSR2: // crt handler				
 				current_process->process_state = INTERRUPTED;
 				previous_process = current_process;
 				current_process = pcb_pointer_tracker[IPROC_CRT];
 				crt_iproc();
-	                	current_process = previous_process;
-	                	current_process->process_state = EXECUTING;
+	            current_process = previous_process;
+	            current_process->process_state = EXECUTING;									
 				break;
 	}	
 } 	
