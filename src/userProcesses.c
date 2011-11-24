@@ -16,7 +16,7 @@ void process_CCI() {
 	char std_array[5];
 	std_array[0] = 'C'; std_array[1] = 'C'; std_array[2] = 'I'; std_array[3] = ':'; std_array[4] = ' ';
 	char ps_array[5];
-
+	int i;//used for for loop count
 	int invalid; 
 	while (1) {
 		if (current_process->msg_envelope_q.size == 0) {
@@ -69,8 +69,27 @@ void process_CCI() {
 					msg->msg_text[5] = msg->msg_text[12];
 					msg->msg_type = CHANGE_CLOCK;
 					error = send_message(PROC_CLK, msg);
+				}*/
+				
+				else if (msg->msg_text[0] == 'c' && msg->msg_text[1] == ' ')
+				{
+					msg->msg_type = CHANGE_CLOCK; 
+					for (i =0;i<10; i++)
+					{
+						msg->msg_text[i] = msg->msg_text[i+2];
+					}
+					error = send_message(PROC_CLK, msg);
+					/*msg->msg_text[0] = msg->msg_text[2];
+					msg->msg_text[1] = msg->msg_text[3];
+					msg->msg_text[2] = msg->msg_text[4];
+					msg->msg_text[3] = msg->msg_text[5];
+					msg->msg_text[4] = msg->msg_text[6];
+					msg->msg_text[5] = msg->msg_text[7];
+					msg->msg_text[6] = msg->msg_text[8];
+					msg->msg_text[7] = msg->msg_text[9];*/
+					//msg->msg_type = CHANGE_CLOCK;
+					//error = send_message(PROC_CLK, msg);
 				}
-				*/
 				//Turn on wall clock
 				else if (msg->msg_text[0]=='c' && msg->msg_text[1]=='d') {
 					msg->msg_type = SHOW_CLOCK; 
@@ -259,6 +278,7 @@ void wall_clock() {
 	msg_envelope * msg = NULL;
 	msg_envelope * crt_msg = NULL;	
 	int i;
+	int confirmation_sent;
 	
 	//this section should run forever once all variables have been initialized
 	do {			 
@@ -275,19 +295,17 @@ void wall_clock() {
 			
 			switch(command)
 			{
-				case CHANGE_CLOCK: 	//set wall clock time
-					printf("wALL CLOCK: setting wall clock time");fflush(stdout);
-					command_data[0] = msg->msg_text[0];
-					command_data[1] = msg->msg_text[1];
-					command_data[2] = ' ';
-					command_data[3] = msg->msg_text[2];
-					command_data[4] = msg->msg_text[3];
-					command_data[5] = ' ';
-					command_data[6] = msg->msg_text[4];
-					command_data[7] = msg->msg_text[5];	
+				case CHANGE_CLOCK: 	//set wall clock time					
+					time[0] = msg->msg_text[0];
+					time[1] = msg->msg_text[1];
+					time[2] = msg->msg_text[2];
+					time[3] = msg->msg_text[3];
+					time[4] = msg->msg_text[4];
+					time[5] = msg->msg_text[5];
+					time[6] = msg->msg_text[6];
+					time[7] = msg->msg_text[7];	
 					
-					time_set = 1;
-					printf("wALL CLOCK: time is: %s", command_data);
+					time_set = 1;					
 					break;
 				case STOP_CLOCK: 	//turn wall clock display off
 					printf("turning off clock");fflush(stdout);
@@ -300,33 +318,41 @@ void wall_clock() {
 			}
 		}
 		
+		release_msg_env(msg);
+		msg = NULL;
+		
 		//display wall clock
 		if (clock_status == ON)
 		{
-			if (time_set == 1) //if the user set the time then a message with the time should be available			
+			/*if (time_set == 1) //if the user set the time then a message with the time should be available			
 				temp = send_console_chars(msg); //send to the crt the message with the new user-defined time			
 			else
-			{
+			{*/
 				while(crt_msg == NULL)
 					crt_msg = request_msg_env(); //request envelope to send message to crt
 				for(i =0;i<TIME_SIZE;i++)
 					crt_msg->msg_text[i] = time[i];
 				crt_msg->msg_size = TIME_SIZE;
 				temp = send_console_chars(crt_msg); //send to the crt the updated time
-			}
+			//}
 			
-			if (temp == SUCCESS)
-			{
-				msg = NULL;			
+			//don't do anything until the crt has confirmed that the clock was displyed
+			if (temp == SUCCESS) 
+			{						
 				while(msg==NULL) //need to change this so that only message from iproc_crt are accepted				
-					msg = receive_message(); //wait for a confirmation that the message was sent	
+				{	
+					msg = receive_message();
+					//if (msg == NULL)
+						//release_processor();
+				}	
+				//release_msg_env(msg); //release the confimation message envelope	
 				//what if confirmation doesn't come?
 			}
 		}
 					
 		//request a message envelope to send message to timing service
 		//what if it takes a very long time - approx 1s - to get a message? our clock will not be up to date
-		
+		/*
 		msg = NULL;
 	
 		while(msg == NULL)
@@ -354,7 +380,7 @@ void wall_clock() {
 				awake = 1;			
 			else if(msg->msg_type!= WALL_CLK_WAKEUPCODE) //make sure the message received is from the timer process
 				release_processor();
-		}
+		}*/
 		
 		/*		
 		//since it is critical that the wall clock have a message envelope on time, don't release the envelope
