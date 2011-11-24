@@ -19,6 +19,7 @@ int release_msg_env(msg_envelope * msg);
 int release_processor();
 int request_process_status(msg_envelope* env);
 int get_trace_buffers (msg_envelope* msg);
+int change_priority(int new_priority, int target_process_id);
 void atomic(int on);
 void process_switch();
 void context_swtich(jmp_buf *previous, jmp_buf *next);

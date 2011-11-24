@@ -30,7 +30,7 @@ void atomic(int on) {
 int request_process_status(msg_envelope* env) {
 	int retCode = 0;
 	atomic(ON); 
-	retCode = request_process_status(env);
+	retCode = k_request_process_status(env);
 	atomic(OFF);
 	return retCode;
 }
@@ -89,7 +89,7 @@ void process_switch( )
     next_process = (PCB *) rpq_dequeue( ); //pointer points to the next highest priority ready process 
     previous_process = current_process; //Setting the current process as previous process
     current_process = next_process; //Setting the current process PCB to the next process
-    if( current_process->process_id == 3)
+    if( current_process->process_id != 5 || previous_process->process_id != 5)
        printf("process_switch: Context switch between %i and %i \n", previous_process->process_id, current_process->process_id);
     fflush(stdout);
     context_switch( previous_process->context, next_process->context ); //switch the context of 'previous' process to 'next' process
@@ -163,3 +163,14 @@ int release_processor()
     
     return retCode;
 }
+
+int change_priority(int new_priority, int target_process_id)
+{
+    int retCode;
+    atomic(ON);
+    retCode=k_change_priority(new_priority, target_process_id);
+    atomic(OFF);
+    
+    return retCode;
+}
+

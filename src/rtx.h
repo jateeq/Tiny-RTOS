@@ -60,6 +60,8 @@ extern "C" {
 #define STOP_CLOCK 5
 #define COUNT_REPORT 6
 #define SHOW_CLOCK 6
+#define OUTPUT_CONFIRM 8
+#define OUTPUT_REQUEST 9
 
 //Success Code
 #define SUCCESS 0

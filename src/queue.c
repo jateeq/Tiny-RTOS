@@ -181,11 +181,13 @@ PCB *remove_PCB_from_rpq(int target_pid) {
             removed_pcb->next = NULL;
             return removed_pcb;
         }        
-    } 
+    }
     
     if (removed_pcb->next == NULL) {
-        printf("Error: Cannot find the msg_envelope PCB to dequeue!");
+        printf("Error: Cannot find the PCB to dequeue!");
     }
+
+    return NULL;
 }
 
 int time_out_request_enqueue(msg_envelope *msg) {

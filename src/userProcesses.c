@@ -19,6 +19,8 @@ void process_CCI() {
 	int i;//used for for loop count
 	int invalid; 
 	while (1) {
+		printf("CCI starting loop\n");
+		fflush(stdout);
 		if (current_process->msg_envelope_q.size == 0) {
 			msg = request_msg_env();
 			error = get_console_chars(msg);
@@ -28,10 +30,11 @@ void process_CCI() {
 		if (msg == NULL) {
 		   printf("process_CCI: Received a NULL message!!");
 		}
-
+		printf("CCI: msg_type: %i\n", msg->msg_type);
 		if (msg->msg_type == CONSOLE_INPUT) {
 									
 			printf("process_CCI: Message from keyboard has been received. Message type: %i Message content: %s\n", msg->msg_type, msg->msg_text);
+			fflush(stdout);
 			error = 0;
 			invalid = 0;
 			int i;
@@ -48,8 +51,13 @@ void process_CCI() {
 			if (invalid == 0) {// passes previous test
 
 				//send message to process A
-				if (msg->msg_text[0] == 's' && msg->msg_size == 6) {
-					error = send_message(PROC_A, msg);
+				if (msg->msg_text[0] == 's' && msg->msg_size == 1) {
+					printf("CCI: trying to output to CRT\n"); 
+					//error = send_message(PROC_A, msg);
+					msg->msg_text[0] = 'Z'; msg->msg_text[1] = 'Z'; msg->msg_text[2] = 'Z'; msg->msg_text[3] = 'Z'; 
+					msg->msg_size = 4; 
+					msg->msg_type = OUTPUT_REQUEST; 
+					error = send_console_chars(msg);
 				}
 
 				//display process status
@@ -110,26 +118,16 @@ void process_CCI() {
 				else if (msg->msg_text[0] =='t') {
 					error = terminate();
 				}
+
 				//change priority
-				//********ATTN: not sure how atoi works******
-				/*
-				else if (msg->msg_text[5]=='n' && msg->text[6]==' ' && atoi(msg->msg_text[7])<=9 && msg->text[8]==' ' && atoi(msg->msg_text[9])<=9) {
-					if (atoi(msg->msg_text[9]) == PROC_NULL)
-						//do something to handle this case. For now, just printf
-						fflush(stdout);
-						printf("cannnot change null process priority");
-					}
-					else if (atoi(msg->msg_text[7]) > 3 || atoi(msg->msg_text[9]) > NUM_OF_PROCESSES || atoi(msg->msg_text[7]) < 0) {
-						//do something to handle this case. Fllor now, just printf
-						fflush(stdout);
-						printf("cannnot change null process priority");
-					}
-					else {
-						error = change_priority( atoi(msg->msg_text[7]), atoi(msg->msg_text[9]) );
-					}
+				else if (msg->msg_text[0]=='n' && msg->msg_text[1]==' ' && msg->msg_text[3]==' ' && msg->msg_size == 5 ) {
+					int priority;
+					int pid;
+					sscanf(&msg->msg_text[2], "%i", &priority);
+					sscanf(&msg->msg_text[4], "%i", &pid);
+					printf("CCI: Process %i is receiving new priority %i\n", pid, priority);
+					error = change_priority( priority,pid);
 				}
-				*/
-				
 				
 				//default case: if all above cases fall through
 				else {
