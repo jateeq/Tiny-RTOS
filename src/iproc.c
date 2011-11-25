@@ -105,18 +105,6 @@ void crt_iproc()
 			printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
 			fflush(stdout);
 		}
-<<<<<<< HEAD
-		//send confirmation message to invoking process		
-		msg->receiver_pid = msg->sender_pid;
-		msg->sender_pid = current_process->process_id; 
-		msg->msg_type = DISPLAY_ACK;
-		//error_code = k_send_message(PROC_C, msg);
-		error_code = k_send_message(msg->receiver_pid, msg);
-		fflush(stdout);
-		printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
-		fflush(stdout);
-=======
->>>>>>> 65a9058292e38a47b07e1a16f68402b66e0fdf1b
 	} else {		
 		printf("crt_iproc: head is NULL");
 	}
