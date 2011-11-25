@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
          printf ("Critical error in dequing from RPQ.");
     }
 
-    //ualarm(100000,100000);
+    ualarm(100000,100000);
     printf("Load the first process to CPU...\n");
     longjmp(*(current_process->context),1);
     while(1);

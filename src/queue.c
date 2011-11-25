@@ -99,12 +99,13 @@ msg_envelope *msg_dequeue(msg_queue *queue) {
 		queue->tail = temp->previous; 
 		temp->next = NULL;
 		temp->previous = NULL;
-		queue->tail->next = NULL;
 	}
 	queue->size--;
 	if (queue->size == 0){
 		queue->head = NULL;
 		queue->tail = NULL;
+	} else {
+		queue->tail->next = NULL;
 	}
 	
 	return temp;

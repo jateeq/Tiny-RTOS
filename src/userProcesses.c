@@ -164,8 +164,8 @@ void process_B()
         msg_envelope* env = receive_message(); //receive a message
         send_message(PROC_C,env); //send the message to process C
     }
-    
     return;
+    
 
 }
 
@@ -244,78 +244,109 @@ void process_NULL()
 void wall_clock() {
 
 	//this section is only going to run once during the lifetime of the rtx
-    int time = 0;
+    //char time[TIME_SIZE] = "00:00:00";
+	int time = 0;
 	int clock_status = OFF;	
 	int awake = 1;
 	int time_set = 0; //determines whether the user set the time or not - used while displaying the time
 	int command;
 	int temp; //stores return values from user APIs	
 	char command_data[MAX_COMMAND_DATA_SIZE];
-	msg_envelope * msg = NULL;
-	msg_envelope * crt_msg = NULL;	
+	msg_envelope * msg = NULL;	
+	msg_envelope * timer_msg;	
+	while(timer_msg==NULL)		
+		timer_msg = request_msg_env();		
+	timer_msg->receiver_pid = IPROC_TIMER;
+	timer_msg->sender_pid = PROC_CLK;
+	request_delay(10, WALL_CLK_WAKEUPCODE, timer_msg);
+	int i =0;
+	int confirmation_sent;	
 	
 	//this section should run forever once all variables have been initialized
-	do {			 
+	do {		
 		msg = receive_message();
-		
-		//expecting messages only from the CCI at this point
+		 
+		//expecting messages only from the CCI at this pointu
 		
 		//parse the message text to get the command and other data out
 		
 		if (msg != NULL)
-		{
-			int i = 0;
-			
+		{	
 			//get the command entered by user
-			command = msg->msg_type;			
 			
-			switch(command)
-			{
-				case 4: 	//set wall clock time
-					command_data[0] = msg->msg_text[0];
-					command_data[1] = msg->msg_text[1];
-					command_data[2] = ' ';
-					command_data[3] = msg->msg_text[2];
-					command_data[4] = msg->msg_text[3];
-					command_data[5] = ' ';
-					command_data[6] = msg->msg_text[4];
-					command_data[7] = msg->msg_text[5];	
+			if(msg->sender_pid == IPROC_TIMER)
+			{				
+				//increment your clock
+				printf("WALL CLOCK - incrementing time\n");fflush(stdout);
+				time ++;							
+				
+				//display wall clock
+				if (clock_status == ON)
+				{			
 					
-					time_set = 1;
-					break;
-				case 5: 	//turn wall clock display off
-					clock_status =  OFF;
-					break;
-				case 6: 	//turn wall clock display on					
-					clock_status = ON;
-					break;					
+					//for(i =0;i<TIME_SIZE;i++)
+					/*crt_msg->msg_text[0] = time[0];
+					crt_msg->msg_text[1] = time[1];
+					crt_msg->msg_text[2] = '';
+					crt_msg->msg_text[3] = time[2];
+					crt_msg->msg_text[4] = time[3];
+					crt_msg->msg_text[5] = '';
+					crt_msg->msg_text[6] = time[4];
+					crt_msg->msg_text[7] = time[5];*/
+					
+					sprintf(msg->msg_text, "%i", time);
+					
+					msg->msg_size = strlen(msg->msg_text);
+					msg->sender_pid = PROC_CLK;
+					msg->receiver_pid = IPROC_CRT;
+					temp = send_console_chars(msg); //send to the crt the updated time					
+				}
+				
+				//return the msg back to the timer as a request delay
+				msg->receiver_pid = IPROC_TIMER;
+				msg->sender_pid = PROC_CLK;
+				request_delay(10, WALL_CLK_WAKEUPCODE, msg);
+			}
+			else if(msg->sender_pid == IPROC_CRT)
+			{
+				release_msg_env(msg);
+			}
+			else if(msg->sender_pid == PROC_CCI)
+			{
+				command = msg->msg_type;			
+				
+				switch(command)
+				{
+					case CHANGE_CLOCK: 	//set wall clock time					
+						/*time[0] = (int) msg->msg_text[0];
+						time[1] = (int) msg->msg_text[1];
+						//time[2] = (int) msg->msg_text[2];
+						time[3] = (int) msg->msg_text[3];
+						time[4] = (int) msg->msg_text[4];
+						//time[5] = (int) msg->msg_text[5];
+						time[6] = (int) msg->msg_text[6];
+						time[7] = (int) msg->msg_text[7];	*/
+						printf("changing time");fflush(stdout);
+						time_set = 1;					
+						break;
+					case STOP_CLOCK: 	//turn wall clock display off
+						printf("turning off clock");fflush(stdout);
+						clock_status =  OFF;
+						release_msg_env(msg);
+						break;
+					case SHOW_CLOCK: 	//turn wall clock display on	
+						printf("wALL CLOCK: turning on clock");fflush(stdout);
+						clock_status = ON;
+						break;					
+				}
 			}
 		}
 		
-		//display wall clock
-		if (clock_status == ON)
-		{
-			if (time_set == 1) //if the user set the time then a message with the time should be available			
-				temp = send_console_chars(msg); //send to the crt the message with the new user-defined time			
-			else
-			{
-				while(crt_msg == NULL)
-					crt_msg = request_msg_env(); //request envelope to send message to crt
-				temp = send_console_chars(crt_msg); //send to the crt the updated time
-			}
 			
-			if (temp == SUCCESS)
-			{
-				msg = NULL;			
-				while(msg==NULL) //need to change this so that only message from iproc_crt are accepted				
-					msg = receive_message(); //wait for a confirmation that the message was sent	
-				//what if confirmation doesn't come?
-			}
-		}
 					
 		//request a message envelope to send message to timing service
 		//what if it takes a very long time - approx 1s - to get a message? our clock will not be up to date
-		
+		/*
 		msg = NULL;
 	
 		while(msg == NULL)
@@ -343,7 +374,7 @@ void wall_clock() {
 				awake = 1;			
 			else if(msg->msg_type!= WALL_CLK_WAKEUPCODE) //make sure the message received is from the timer process
 				release_processor();
-		}
+		}*/
 		
 		/*		
 		//since it is critical that the wall clock have a message envelope on time, don't release the envelope
@@ -353,6 +384,7 @@ void wall_clock() {
 	
 	
 }
+
 /*
 void processP()
 {

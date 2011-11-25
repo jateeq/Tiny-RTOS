@@ -116,7 +116,7 @@ void timer_iproc() {
 	//Increment internel kernel clock (in ms)
 	kernel_clock++;
 	
-//	printf("Timer iprocess is invoked\n");
+	//printf("Timer iprocess is invoked\n");
 
 	//Now check for any message sent by other processes
 //	printf("Recieving time out request from other processes\n");
@@ -138,19 +138,21 @@ void timer_iproc() {
 		msg = sorted_timeout_list->head;
 		if (msg != NULL) {
 		    	msg->n_clock_ticks--;
-			printf("timer_iproc: Clock tick:%i\n", msg->n_clock_ticks);
-		}
-		while (msg->next) {
-			msg->n_clock_ticks--;
+		//	printf("timer_iproc: Clock tick:%i\n", msg->n_clock_ticks);
+			while (msg->next) {
+				msg->n_clock_ticks--;
+			}
+		} else {
+		    	//Something went wrong...
 		}
 
-		printf("timer_iproc: Checking for expired message envelope\n");
+	//	printf("timer_iproc: Checking for expired message envelope\n");
 		while (sorted_timeout_list->tail != NULL)
 		{
 			if (sorted_timeout_list->tail->n_clock_ticks == 0) {
-				msg = msg_dequeue(sorted_timeout_list);//Dequeue the expired message from the sender
-				printf("timer_iproc: Returning message back to the sender\n");
-			    k_send_message(msg->sender_pid, msg);//return envelope to the sender
+				msg = msg_dequeue(sorted_timeout_list);//Dequeue the expired message from	 the sender
+				//printf("timer_iproc: Returning message back to the sender\n");
+			   	k_send_message(msg->sender_pid, msg);//return envelope to the sender
 			} else {
 				break;
 			}
