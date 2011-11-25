@@ -235,7 +235,7 @@ int k_request_delay( int time_delay, int wakeup_code, msg_envelope * message_env
         // popoulate num of clock ticks desired inside message
 	message_envelope->msg_type = wakeup_code;
         // write message with code timing service will reply with after delay is over
-	int retCode = k_send_message(message_envelope->receiver_pid, message_envelope);
+	int retCode = k_send_message(IPROC_TIMER, message_envelope);
 		
         return retCode;
     }
