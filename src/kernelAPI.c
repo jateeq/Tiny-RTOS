@@ -427,20 +427,6 @@ int k_get_trace_buffers(msg_envelope *env) {
 }
 
 int k_request_process_status(msg_envelope * msg) {
-<<<<<<< HEAD
-	int i;
-	char *outputformat;
-	int retCode;
-	retCode = 0;
-
-	outputformat = "Process_ID,Priority,Status\n";
-	for (i=0; i<NUM_OF_PROC; i++) {
-		strcat(outputformat, (char* )pcb_pointer_tracker[i]->process_id);
-		strcat(outputformat, ",");
-		strcat(outputformat, (char* )pcb_pointer_tracker[i]->process_priority);
-		strcat(outputformat, ",");
-		strcat(outputformat, (char* )pcb_pointer_tracker[i]->process_state);
-=======
 	int i; 	int j=0;
 	char outputformat[127];
 	int retCode = 0;
@@ -458,7 +444,6 @@ int k_request_process_status(msg_envelope * msg) {
 		strncat(outputformat, pri, 1);
 		strcat(outputformat, ",");
 		strncat(outputformat, pst, 1);
->>>>>>> 65a9058292e38a47b07e1a16f68402b66e0fdf1b
 		strcat(outputformat, "\n");
 		int str_size = strlen(outputformat);
 		for (j=0; j<str_size; j++) {
