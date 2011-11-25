@@ -186,8 +186,8 @@ void process_B()
         msg_envelope* env = receive_message(); //receive a message
         send_message(PROC_C,env); //send the message to process C
     }
-    
     return;
+    
 
 }
 
@@ -280,15 +280,13 @@ void wall_clock() {
 		timer_msg = request_msg_env();		
 	timer_msg->receiver_pid = IPROC_TIMER;
 	timer_msg->sender_pid = PROC_CLK;
-	request_delay(2, WALL_CLK_WAKEUPCODE, timer_msg);
+	request_delay(10, WALL_CLK_WAKEUPCODE, timer_msg);
 	int i =0;
-	int confirmation_sent;
+	int confirmation_sent;	
 	
 	//this section should run forever once all variables have been initialized
 	do {		
-		printf("WALL CLOCK RUN NO.: %i\n", i); i++;
-		msg = receive_message();
-		
+		msg = receive_message();		 
 		//expecting messages only from the CCI at this pointu
 		
 		//parse the message text to get the command and other data out
@@ -299,8 +297,8 @@ void wall_clock() {
 			
 			if(msg->sender_pid == IPROC_TIMER)
 			{				
-				//increment your clock
-				printf("WALL CLOCK - incrementing time.. time is now: %i\n", time);fflush(stdout);
+				//increment your clock		
+				printf("WALL CLOCK - incrementing time\n");fflush(stdout);
 				time ++;							
 				
 				//display wall clock
@@ -317,8 +315,7 @@ void wall_clock() {
 					crt_msg->msg_text[6] = time[4];
 					crt_msg->msg_text[7] = time[5];*/
 					
-					sprintf(msg->msg_text, "%i", time);
-					
+					sprintf(msg->msg_text, "%i", time);					
 					msg->msg_size = strlen(msg->msg_text);
 					msg->sender_pid = PROC_CLK;
 					msg->receiver_pid = IPROC_CRT;
@@ -328,7 +325,7 @@ void wall_clock() {
 				//return the msg back to the timer as a request delay
 				msg->receiver_pid = IPROC_TIMER;
 				msg->sender_pid = PROC_CLK;
-				request_delay(2, WALL_CLK_WAKEUPCODE, msg);
+				request_delay(10, WALL_CLK_WAKEUPCODE, msg);
 			}
 			else if(msg->sender_pid == IPROC_CRT)
 			{
@@ -407,6 +404,7 @@ void wall_clock() {
 	
 	
 }
+
 /*
 void processP()
 {

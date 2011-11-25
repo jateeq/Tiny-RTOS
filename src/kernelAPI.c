@@ -21,6 +21,7 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     int i;
     int retCode = SUCCESS;
+    printf("k_send_message: Dest_process_id: %i\n", dest_process_id);
 	
     for (i=0;i<NUM_TOTAL_PROC;i++) //use dest_id to look up the target process PCB pointer
     {
@@ -30,14 +31,15 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     msg_queue *temp_msg_q;
     temp_msg_q= &target_PCB->msg_envelope_q;
-    printf("k_send_message: Target process: %i, current process: %i\n",target_PCB->process_id, current_process->process_id);
+    printf("k_send_message: Target process: %i\n",target_PCB->process_id);
 
     //enqueue envelope onto the message queue of the target process
     msg_envelope->sender_pid = current_process->process_id;
     msg_envelope->receiver_pid = dest_process_id;
+	
     retCode = msg_enqueue(msg_envelope, temp_msg_q);
-
-    //printf("k_send_message: target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
+	printf("k_send_message: message send to %i by %i\n", msg_envelope->receiver_pid, msg_envelope->sender_pid);
+    printf("k_send_message: check target pcb queue size: %i\n", target_PCB->msg_envelope_q.size); 
 
     if (target_PCB->msg_envelope_q.head==NULL)
 	printf("send failed: msg_envelope_q is null\n");
@@ -45,31 +47,30 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
     if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
     {
 		target_PCB->process_state = READY;
-		printf("k_send_message:Enquing process %i to rpq\n", target_PCB->process_id); 
+		printf("k_send_message:eEnquing process %i to rpq\n", target_PCB->process_id); 
 		retCode = rpq_enqueue(target_PCB);//enqueue blocked process to ready queue;
     }
 
 	//Record send on the trace buffer
-	if (send_tr_buf->index == BUFFER_SIZE) {
+	if (send_tr_buf->index == 15) {
 		//If the trace buffer is full
 		int i;
 		//Shift the stored data by 1 unit
-		for (i = 0; i <send_tr_buf->index-1; i++){
+		for (i = 0; i <send_tr_buf->index; i++){
 			send_tr_buf->send_trace_buffer_array[i].sender_pid = send_tr_buf->send_trace_buffer_array[i+1].sender_pid;
 			send_tr_buf->send_trace_buffer_array[i].receiver_pid = send_tr_buf->send_trace_buffer_array[i+1].receiver_pid;
 			send_tr_buf->send_trace_buffer_array[i].time = send_tr_buf->send_trace_buffer_array[i+1].time;
 		}
-		send_tr_buf->send_trace_buffer_array[BUFFER_SIZE].sender_pid = msg_envelope->sender_pid;
-		send_tr_buf->send_trace_buffer_array[BUFFER_SIZE].receiver_pid = msg_envelope->receiver_pid;
-		send_tr_buf->send_trace_buffer_array[BUFFER_SIZE].time = kernel_clock;
+
+		send_tr_buf->send_trace_buffer_array[15].sender_pid = msg_envelope->sender_pid;
+		send_tr_buf->send_trace_buffer_array[15].receiver_pid = msg_envelope->receiver_pid;
+		send_tr_buf->send_trace_buffer_array[15].time = kernel_clock;
 	} else {
+		send_tr_buf->index++;
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].sender_pid = msg_envelope->sender_pid;
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].receiver_pid = msg_envelope->receiver_pid;
 		send_tr_buf->send_trace_buffer_array[send_tr_buf->index].time = kernel_clock;
-		send_tr_buf->index++;
-	}
-
-	fflush(stdout);        
+	}   
 
 	return SUCCESS;
 }
@@ -90,28 +91,28 @@ msg_envelope * k_receive_message()
 	msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
 	//printf("k_receive_message: Sender id is %i",temp_envelope->sender_pid);
 	//store the details of this receive transaction on the receive_trace_buffer
-	if (send_tr_buf->index == BUFFER_SIZE) {
+	if (receive_tr_buf->index == 15) {
 		//If the trace buffer is full
 		int i;
-		for (i = 0; i <send_tr_buf->index-1; i++){
+		for (i = 0; i <receive_tr_buf->index; i++){
 			//Shift the stored data by 1 unit
-			receive_tr_buf->receive_trace_buffer_array[i].sender_pid = send_tr_buf->send_trace_buffer_array[i+1].sender_pid;
-			receive_tr_buf->receive_trace_buffer_array[i].receiver_pid = send_tr_buf->send_trace_buffer_array[i+1].receiver_pid;
-			receive_tr_buf->receive_trace_buffer_array[i].time = send_tr_buf->send_trace_buffer_array[i+1].time;
+			receive_tr_buf->receive_trace_buffer_array[i].sender_pid = receive_tr_buf->receive_trace_buffer_array[i+1].sender_pid;
+			receive_tr_buf->receive_trace_buffer_array[i].receiver_pid = receive_tr_buf->receive_trace_buffer_array[i+1].receiver_pid;
+			receive_tr_buf->receive_trace_buffer_array[i].time = receive_tr_buf->receive_trace_buffer_array[i+1].time;
 		}
 
-		receive_tr_buf->receive_trace_buffer_array[BUFFER_SIZE].sender_pid = temp_envelope->sender_pid;
-		receive_tr_buf->receive_trace_buffer_array[BUFFER_SIZE].receiver_pid = temp_envelope->receiver_pid;
-		receive_tr_buf->receive_trace_buffer_array[BUFFER_SIZE].time = kernel_clock;
+		receive_tr_buf->receive_trace_buffer_array[15].sender_pid = temp_envelope->sender_pid;
+		receive_tr_buf->receive_trace_buffer_array[15].receiver_pid = temp_envelope->receiver_pid;
+		receive_tr_buf->receive_trace_buffer_array[15].time = kernel_clock;
 	} else {
+		receive_tr_buf->index++;
 		receive_tr_buf->receive_trace_buffer_array[receive_tr_buf->index].sender_pid = temp_envelope->sender_pid;
 		receive_tr_buf->receive_trace_buffer_array[receive_tr_buf->index].receiver_pid = temp_envelope->receiver_pid;
 		receive_tr_buf->receive_trace_buffer_array[receive_tr_buf->index].time = kernel_clock;
-		receive_tr_buf->index++;
 	}
+
 	return temp_envelope;
 }
-
 int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
 {
     int retCode=SUCCESS;
@@ -347,10 +348,10 @@ int k_get_trace_buffers(msg_envelope *env) {
 		size = send_tr_buf->index;
 		printf("k_get_trace_buffer: Copying send trace content of size %i\n", size);
 		while (size > 0 && env->msg_size < BUFFER_SIZE) {
-			sprintf(sid, "%i", send_tr_buf->send_trace_buffer_array[size-1].sender_pid);
-			sprintf(rid, "%i", send_tr_buf->send_trace_buffer_array[size-1].receiver_pid);
-			sprintf(t, "%i", send_tr_buf->send_trace_buffer_array[size-1].time);
-
+			sprintf(sid, "%i", send_tr_buf->send_trace_buffer_array[size].sender_pid);
+			sprintf(rid, "%i", send_tr_buf->send_trace_buffer_array[size].receiver_pid);
+			sprintf(t, "%i", send_tr_buf->send_trace_buffer_array[size].time);
+			printf("%i,%i,%i,%i\n",send_tr_buf->send_trace_buffer_array[size].sender_pid,send_tr_buf->send_trace_buffer_array[size-1].receiver_pid,send_tr_buf->send_trace_buffer_array[size-1].time,size);
 			strcat(output_format, "Sender ID: ");
 			strncat(output_format, sid, 1);
 			
