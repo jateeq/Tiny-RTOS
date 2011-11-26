@@ -48,6 +48,10 @@ crt.o:
 #clean everything in the build folder
 clean:
 	rm -r -f $(builddir)/*
+	
+cleanBuild:
+	rm -f build/in_buf
+	rm -f build/out_buf
 
 
 
