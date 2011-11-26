@@ -287,7 +287,10 @@ void wall_clock() {
 
 	//this section is only going to run once during the lifetime of the rtx
     //char time[TIME_SIZE] = "00:00:00";
-	int time = 0;
+	int time = 0; //if you comment this the wall clock does not run in a loop...
+	int nSeconds = 0;
+	int nMinutes = 0;
+	int nHours = 0;
 	int clock_status = OFF;	
 	int awake = 1;
 	int time_set = 0; //determines whether the user set the time or not - used while displaying the time
@@ -320,7 +323,24 @@ void wall_clock() {
 			{				
 				//increment your clock		
 				printf("WALL CLOCK - incrementing time\n");fflush(stdout);
-				time ++;							
+				//time ++;							
+				nSeconds ++;
+				if (nSeconds == 60)
+				{
+					nMinutes++;
+					nSeconds = 0;
+				}
+				if (nMinutes == 60)
+				{
+					nHours++;
+					nMinutes = 0;
+				}
+				
+				if (nHours == 24 && nMinutes == 60 && nSeconds == 60)
+				{
+					printf("WALL CLOCK: The rtx has been running for a day. Resetting time to zero");
+					nSeconds = nMinutes = nHours = 0;
+				}
 				
 				printf("WALL CLOCK: should the clock be displayed? clock_status2=%i\n", clock_status2);fflush(stdout);
 				
@@ -339,7 +359,9 @@ void wall_clock() {
 					crt_msg->msg_text[6] = time[4];
 					crt_msg->msg_text[7] = time[5];*/
 										
-					int nSeconds = time%(3600*60); char* sSeconds;
+					/*int nSeconds = time%(3600*60); 
+					int nMinutes = time/60;
+					int nHours = time/3600;
 					if (nSeconds <10)
 					{
 						msg->msg_text[0] = '0';	
@@ -350,12 +372,15 @@ void wall_clock() {
 					{
 						//sSeconds = (char)nSeconds
 						//msg->text[0] = sSeconds[0];
-						//msg->text[1] = sSeconds[1];
-						//strcat(msg->msg_text, (char*)nSeconds);
-						//sprintf(msg->text, "%i", nSeconds);
-					}	/**/
+						//msg->text[1] = sSeconds[1];*/
+						//strcat(msg->msg_text, (char*)nSeconds);						
+						sprintf(msg->msg_text, "%i:%i:%i", nHours, nMinutes, nSeconds);						
+						strcat(msg->msg_text,"\n");
+						msg->msg_size+=2;
+						
+					//}	/**/
 					//strcat(msg->msg_text, '\0');
-					printf("WALL CLOCK: the time right now is : %i\n", time);fflush(stdout);
+					//printf("WALL CLOCK: the time right now is : %i\n", time);fflush(stdout);
 					//sprintf(msg->msg_text, "%s", sSeconds);		
 					//msg->msg_text[0] = (char)time;
 					msg->msg_type = OUTPUT_REQUEST;
