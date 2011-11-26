@@ -283,6 +283,7 @@ void wall_clock() {
 	request_delay(10, WALL_CLK_WAKEUPCODE, timer_msg);
 	int i =0;
 	int confirmation_sent;	
+	int clock_status2;
 	
 	//this section should run forever once all variables have been initialized
 	do {		
@@ -301,10 +302,13 @@ void wall_clock() {
 				printf("WALL CLOCK - incrementing time\n");fflush(stdout);
 				time ++;							
 				
+				printf("WALL CLOCK: should the clock be displayed? clock_status2=%i\n", clock_status2);fflush(stdout);
+				
 				//display wall clock
-				if (clock_status == ON)
+				//if (clock_status == ON)
+				if (clock_status2 == ON)
 				{			
-					
+					printf("WALL CLOCK: displaying time\n");
 					//for(i =0;i<TIME_SIZE;i++)
 					/*crt_msg->msg_text[0] = time[0];
 					crt_msg->msg_text[1] = time[1];
@@ -314,9 +318,31 @@ void wall_clock() {
 					crt_msg->msg_text[5] = '';
 					crt_msg->msg_text[6] = time[4];
 					crt_msg->msg_text[7] = time[5];*/
-					
-					sprintf(msg->msg_text, "%i", time);					
+										
+					int nSeconds = time%(3600*60); char* sSeconds;
+					if (nSeconds <10)
+					{
+						msg->msg_text[0] = '0';	
+						//strcat(msg->msg_text, (char*)nSeconds);
+						//sprintf(msg->text[1], "%i", nSeconds);
+					}
+					else
+					{
+						//sSeconds = (char)nSeconds
+						//msg->text[0] = sSeconds[0];
+						//msg->text[1] = sSeconds[1];
+						//strcat(msg->msg_text, (char*)nSeconds);
+						//sprintf(msg->text, "%i", nSeconds);
+					}	/**/
+					//strcat(msg->msg_text, '\0');
+					printf("WALL CLOCK: the time right now is : %i\n", time);fflush(stdout);
+					//sprintf(msg->msg_text, "%s", sSeconds);		
+					//msg->msg_text[0] = (char)time;
+					msg->msg_type = OUTPUT_REQUEST;
+					printf("WALL CLOCK: msg text is: %s", msg->msg_text);
 					msg->msg_size = strlen(msg->msg_text);
+					printf("WALL CLOCK: the message size is : %i\n", msg->msg_size);
+					//msg->msg_size = 1;
 					msg->sender_pid = PROC_CLK;
 					msg->receiver_pid = IPROC_CRT;
 					temp = send_console_chars(msg); //send to the crt the updated time					
@@ -350,13 +376,15 @@ void wall_clock() {
 						time_set = 1;					
 						break;
 					case STOP_CLOCK: 	//turn wall clock display off
-						printf("turning off clock");fflush(stdout);
-						clock_status =  OFF;
+						printf("turning off clock\n");fflush(stdout);
+						//clock_status =  OFF;
+						clock_status2 =  OFF;
 						release_msg_env(msg);
 						break;
 					case SHOW_CLOCK: 	//turn wall clock display on	
-						printf("wALL CLOCK: turning on clock");fflush(stdout);
-						clock_status = ON;
+						printf("wALL CLOCK: turning on clock\n");fflush(stdout);
+						//clock_status = ON;
+						clock_status2 = ON;
 						break;					
 				}
 			}
