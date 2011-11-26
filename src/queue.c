@@ -89,6 +89,8 @@ int msg_enqueue(msg_envelope *msg_env, msg_queue *queue) {
 }
 
 msg_envelope *msg_dequeue(msg_queue *queue) {
+	printf("msg_dequeue: called by process %i\n", current_process->process_id); 
+	fflush(stdout);
 	if (queue->size == 0) {
 		return NULL;
 	}

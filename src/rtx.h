@@ -89,7 +89,7 @@ extern "C" {
 //Buffer Size for TX and RX:
 #define BUFFER_SIZE 128 //bytes
 
-#define NUM_MSG_ENV 60
+#define NUM_MSG_ENV 20
 #define PCB_QUEUE_COUNT 4
 #define STACK_SIZE 16384
 #define STACK_OFFSET 8
