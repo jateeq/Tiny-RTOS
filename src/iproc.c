@@ -69,11 +69,10 @@ void crt_iproc()
 	if (temp != NULL) {
 		if (temp->msg_type == OUTPUT_REQUEST) {
 			fflush(stdout);
-			printf("crt_iproc: Message from sender process was: %c\n", temp->msg_text[0]);
+			printf("crt_iproc: Message from sender was: %c, copying %i characters\n", temp->msg_text[0], temp->msg_size);
 
 			//fill buffer		
 			int count;
-			printf("CRT IPROC: Copying %i characters.\n", temp->msg_size);
 			out_mem_ptr->output_count = 0;
 
 			for(count = 0; count < temp->msg_size; count++)
@@ -100,9 +99,9 @@ void crt_iproc()
 			temp->receiver_pid = temp->sender_pid;
 			temp->sender_pid = current_process->process_id; 
 			temp->msg_type = DISPLAY_ACK;
-			error_code = k_send_message(PROC_CCI, temp);
+			error_code = k_send_message(PROC_C, temp);
 			fflush(stdout);
-			printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to process P\n");
+			printf("crt_iproc: Signal from CRT has been received. Acknowledgment sent back to proc C\n");
 			fflush(stdout);
 		}
 	} else {		

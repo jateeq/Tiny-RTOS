@@ -13,8 +13,8 @@
 
 int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 {
-    if (dest_process_id==0)
-        return ERROR_INVALID_PID;
+    //if (dest_process_id==0) wtf man proc A has pid 0
+     //   return ERROR_INVALID_PID;
 
     PCB *target_PCB;
     //int n = NUM_OF_IPROC;
@@ -43,6 +43,8 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
     if (target_PCB->msg_envelope_q.head==NULL)
 	printf("send failed: msg_envelope_q is null\n");
+
+	printf("k_send_message:target process %i msg q size: %i\n", target_PCB->process_id, target_PCB->msg_envelope_q.size); 
 
     if(target_PCB->process_state == BLOCKED_ON_RECEIVE)
     {
@@ -77,13 +79,19 @@ int k_send_message ( int dest_process_id, msg_envelope * msg_envelope )
 
 msg_envelope * k_receive_message()
 {	
+	printf("k_receive_message: Process %i calls receive\n", current_process->process_id); 
+	fflush(stdout);
 	while ( current_process->msg_envelope_q.size == 0)
 	{
 		if (current_process->process_priority == IPROCESS)
 			return NULL;
 		else {
+			printf("k_receive_message: Process %i got blocked\n", current_process->process_id); 
+			fflush(stdout); 
 			current_process->process_state = BLOCKED_ON_RECEIVE;
 			process_switch();
+			printf("k_receive_message: Process %i resumes with msg q size: %i\n", current_process->process_id, current_process->msg_envelope_q.size);
+			fflush(stdout);
 		}
 	}
 	msg_queue *temp_queue;
@@ -91,7 +99,7 @@ msg_envelope * k_receive_message()
 	msg_envelope *temp_envelope = (msg_envelope *) msg_dequeue(temp_queue);
 	//printf("k_receive_message: Sender id is %i",temp_envelope->sender_pid);
 	//store the details of this receive transaction on the receive_trace_buffer
-	if (receive_tr_buf->index == 15) {
+	/*if (send_tr_buf->index == 15) {
 		//If the trace buffer is full
 		int i;
 		for (i = 0; i <receive_tr_buf->index; i++){
@@ -109,8 +117,7 @@ msg_envelope * k_receive_message()
 		receive_tr_buf->receive_trace_buffer_array[receive_tr_buf->index].sender_pid = temp_envelope->sender_pid;
 		receive_tr_buf->receive_trace_buffer_array[receive_tr_buf->index].receiver_pid = temp_envelope->receiver_pid;
 		receive_tr_buf->receive_trace_buffer_array[receive_tr_buf->index].time = kernel_clock;
-	}
-
+	}*/
 	return temp_envelope;
 }
 int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
@@ -175,7 +182,7 @@ int k_terminate() // GLOBAL VARIABLE FOR: child process id, file id
     free(rpq);     
     
     printf("K_terminate: Free created PCBs (pcb_pointer_tracker)\n");    
-    for (i=0; i < NUM_TOTAL_PROC; i++) //*******8 for full implementation!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for (i=0; i < NUM_TOTAL_PROC; i++)
     {
         free(pcb_pointer_tracker[i]);
 	printf("K_terminate: Process %i freed\n",i);
@@ -269,15 +276,15 @@ int k_release_msg_env(msg_envelope * rel_msg)
 
 msg_envelope * k_request_msg_env()
 {
-    while (free_env_Q ==NULL)
-    {
-	current_process->process_state = BLOCKED_ON_RECEIVE;
-	blocked_on_resource_Q_enqueue(current_process);
-	process_switch();
-    }
-    
     msg_envelope *temp = msg_dequeue(free_env_Q);
-    // NO DEQUEUE OR ENQUEUE FUNCTION FOR FREE_ENV_Q???
+    while (temp==NULL)
+    {
+		printf("k_request_msg_env: Process %i got blocked\n", current_process->process_id); 
+		fflush(stdout); 
+		current_process->process_state = BLOCKED_ON_RECEIVE;
+		blocked_on_resource_Q_enqueue(current_process);
+		process_switch();
+    }
     return temp;
 }
 
@@ -455,4 +462,13 @@ int k_request_process_status(msg_envelope * msg) {
 	msg->msg_type = OUTPUT_REQUEST; 
 	retCode = k_send_console_chars(msg);
 	return retCode;
+}
+
+void test123( ) {
+	int i;
+	for (i=0; i<9; i++) {
+		printf("id: %i, priority: %i, state: %i, env q size:%i\n", pcb_pointer_tracker[i]->process_id, pcb_pointer_tracker[i]->process_priority, pcb_pointer_tracker[i]->process_state, pcb_pointer_tracker[i]->msg_envelope_q.size);
+	}
+	printf("free env q size:%i, sorted timeout q size: %i\n", free_env_Q->size, sorted_timeout_list->size);
+	fflush(stdout);
 }

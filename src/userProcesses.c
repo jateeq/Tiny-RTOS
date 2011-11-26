@@ -30,6 +30,7 @@ void process_CCI() {
 		   printf("process_CCI: Received a NULL message!!");
 		}
 		printf("CCI: msg_type: %i\n", msg->msg_type);
+		fflush(stdout);
 		if (msg->msg_type == CONSOLE_INPUT) {
 									
 			printf("process_CCI: Message from keyboard has been received. Message type: %i Message content: %s\n", msg->msg_type, msg->msg_text);
@@ -50,13 +51,14 @@ void process_CCI() {
 			if (invalid == 0) {// passes previous test
 
 				//send message to process A
-				if (msg->msg_text[0] == 's' && msg->msg_size == 1) {
-					printf("CCI: trying to output to CRT\n"); 
-					//error = send_message(PROC_A, msg);
-					msg->msg_text[0] = 'Z'; msg->msg_text[1] = 'Z'; msg->msg_text[2] = 'Z'; msg->msg_text[3] = 'Z'; 
-					msg->msg_size = 4; 
-					msg->msg_type = OUTPUT_REQUEST; 
-					error = send_console_chars(msg);
+				if (msg->msg_text[0] == 's') {
+					printf("CCI sends message to PROC_A\n"); 
+					fflush(stdout); 
+					error = send_message(PROC_A, msg);
+					//msg->msg_text[0] = 'Z'; msg->msg_text[1] = 'Z'; msg->msg_text[2] = 'Z'; msg->msg_text[3] = 'Z'; 
+					//msg->msg_size = 4; 
+					//msg->msg_type = OUTPUT_REQUEST; 
+					//error = send_console_chars(msg);
 				}
 
 				//display process status
@@ -128,108 +130,126 @@ void process_CCI() {
 
 void process_A()
 {
-	msg_envelope* temp;
-	while (1) {
-		temp = receive_message();
-		if (temp != NULL){
-			fflush(stdout);
-			printf("MESSAGE RECEIVED YES!\n");
-		}	
-	}
+	int error; 
+	msg_envelope* temp = NULL;
 
-    temp = receive_message();
-    release_msg_env(temp); //deallocate the received message envelope
-    int i=0;
-    
+	while (temp==NULL) {
+		temp = receive_message();
+	}	
+    error = release_msg_env(temp); //deallocate the received message envelope
+
+    int  num =0;
     while(1)
     {
-        msg_envelope* env=request_msg_env();
+        msg_envelope* env = request_msg_env();
         env->msg_type=COUNT_REPORT; //set the message_type field to "count_report"
-        env->msg_text[1]=(char)i;//set the msg_data[1] field to num
+        env->msg_text[0]=(char)num;//set the msg_data[1] field to num
         send_message(PROC_B,env); //send the envelope to process B
-        i++;
+        num++;
         release_processor();
     }
     
     return;
-
 
 }
 
 void process_B()
 {
+	int error; 
+	printf("process B started\n"); 
+	fflush(stdout);
 
     while(1)
     {
-        msg_envelope* env = receive_message(); //receive a message
-        send_message(PROC_C,env); //send the message to process C
+		//test123();
+        msg_envelope* env;
+		env = receive_message();
+        error = send_message(PROC_C,env);
     }
     return;
-    
-
 }
 
 void process_C()
 {   
+
+	printf("process B started\n"); 
+	fflush(stdout);
     PCB* pcb;
     msg_envelope* env;
+	char temp[2]; 
+	int repcount;
     int i;
+	int error;
     
-    for (i = 0;i<NUM_OF_USER_PROC;i++)
-    {
-        if (pcb_pointer_tracker[i]->process_id==PROC_C)
-        {
-            pcb = pcb_pointer_tracker[i];
-        }
-    }//perform any needed initialization
+	pcb = current_process; 
     
     while(1)
     {        
-	if (pcb->msg_envelope_q.head==NULL)
-	{
-            env=receive_message(); //receive a message
-        }
-	else
-	{
-            env=(msg_envelope *) msg_dequeue(pcb->msg_envelope_q); //dequeue the first message from the local message queue
-        }
-    
-        if (env->msg_type==COUNT_REPORT)
-        {
-            if (((int)env->msg_text[1])%20==0) //msg_data[1] is evenly divisible by 20
-            {
-		char display[8]={'P','r','o','c','e','s','s','C'}; //send "ProcessC" to display using msg envelope
-		for (i=0;i<8;i++)
-		{
-		    env->msg_text[i+2]=display[i];
-		    printf("&c",env->msg_text[i+2]);
+		if (pcb->msg_envelope_q.head==NULL) {
+			printf("proc c: msg env q size: %i\n" ,pcb->msg_envelope_q.size);
+			fflush(stdout);
+			env = receive_message(); //receive a message
 		}
-		printf("\n");
+		else {
+		   	env = (msg_envelope *) msg_dequeue(&current_process->msg_envelope_q); 
+		}
 
-		int t = 500000; //wait for display_ack
-		send_console_chars(env);
-		env=receive_message();
-		while (env==NULL)
-		{
-		    usleep(t);
-		    env=receive_message();
+		if (env->msg_type==COUNT_REPORT) {
+			//double digit number takes up the first 2 spaces in msg_text
+			temp[0] = env->msg_text[0]; temp[1] = env->msg_text[1]; 
+			repcount = atoi(temp); 
+			
+			printf("Proc C: env msg text: %i\n", repcount); 
+			fflush(stdout); 
+		    if ((repcount%20)==0) {//msg_data[1] is evenly divisible by 20
+				char display[9]={'P','r','o','c','e','s','s',' ','C'}; //send "ProcessC" to display using msg envelope
+				env->msg_size = 0;
+				for (i=0;i<10;i++) {
+					env->msg_text[i]=display[i];
+					env->msg_size++;
+				}
+				env->msg_type = OUTPUT_REQUEST;
+				error = send_console_chars(env);
+
+				while (1) {
+					//test123();
+					env = receive_message();
+					if (env->msg_type == DISPLAY_ACK) {
+						printf("Proc C: receives acknowledgment!\n");
+						fflush(stdout);
+						break; 
+					}
+					else {
+						release_msg_env(env); 
+					    //msg_queue *temp_msg_q;
+    					//temp_msg_q= &current_process->msg_envelope_q;
+						//msg_enqueue(env,temp_msg_q); //put message on the local message queue for later processing	
+					}
+					usleep(10000000); 
+				} 
+/*				request_delay(10000000,PROC_C_WAKEUP_CODE,env); //request a 10 second delay with wakeup_code set to "PROC_C_WAKEUP_CODE"
+
+				while (1) {
+					printf("proc c: i am stuck in the second loop\n"); 
+					env = receive_message();
+					if (env->msg_type == PROC_C_WAKEUP_CODE) {
+						break; 
+					}
+					else {
+						msg_enqueue(env,pcb->msg_envelope_q); //put message on the local message queue for later processing	
+					}
+				}
+*/
+			printf("Proc P: iteration successful\n"); 
+		    }
 		}
 		
-		request_delay(1000,PROC_C_WAKEUP_CODE,env); //request a 10 second delay with wakeup_code set to "PROC_C_WAKEUP_CODE"
-                
-		while (env->msg_type!=PROC_C_WAKEUP_CODE)
-		{
-		    env=receive_message(); //receive a message (block and let other processes execute)
-		    msg_enqueue(env,pcb->msg_envelope_q); //put message on the local message queue for later processing		
-		}
-            }
-        }
-        
-        release_msg_env(env); //deallocate message envelope
-        release_processor();
+		release_msg_env(env); //deallocate message envelope
+		release_processor();
     }
-        
+
     return;
+
 }
 
 void process_NULL() 
@@ -384,81 +404,3 @@ void wall_clock() {
 	
 	
 }
-
-/*
-void processP()
-{
-	//get msg envelope and send message to wall clock process to simulate CCI
-	msg_envelope * msg = NULL;
-    
-	while(msg == NULL)
-	{
-		msg = (msg_envelope *) request_msg_env();
-	}
-	
-	//msg->msg_type = CHANGE_CLOCK;
-	msg->msg_type = SHOW_CLOCK;	
-	
-	msg->msg_text[0] = '1';
-	msg->msg_text[1] = '2';
-	msg->msg_text[2] = '1';
-	msg->msg_text[3] = '2';	
-	msg->msg_text[4] = '3';
-	msg->msg_text[5] = '4';
-	
-	msg->sender_pid = PROC_P;
-	msg->receiver_pid = PROC_CLK;
-	
-	send_message(PROC_CLK, msg);
-	
-    current_process = pcb_pointer_tracker[1];
-	wall_clock();
-	/*const int tWait = 500000; //rcv loop wait time in usec, approx value
-        msg_envelope * env;
-        env = (msg_envelope *) request_msg_env(); //or just malloc memory for one envelope
-	if (env == NULL) {
-		fflush(stdout);
-		printf("\nenvelope allocation failed\n");
-	}
-	//now enter infinite loop
-	while (1) {
-		printf("P: Send message to kbd..\n");
-		get_console_chars (env); //keyboard input
-		fflush(stdout);
-		printf("P: waiting for message from kb..\n");		
-		env = (msg_envelope *) receive_message();//change this to userAPI call later
-
-		while (env == NULL) {
-			usleep(tWait);					
-			env = (msg_envelope *) receive_message();
-			if (env != NULL) {
-			   fflush(stdout);
-			   printf("Message received from the KBD\n");		
-			}
-		}
-		
-		// for testing only
-        int i = 0;
-
-		fflush(stdout);
-		printf("\nthe message from keyboard was: "); 
-                for (i=0; i<sizeof(env->msg_text); i++)
-                {
-                    printf("%c", env->msg_text[i]); 
-                }
-		fflush(stdout);
-		//do we have to check if the message type is output envelope?
-		printf("\nNow sending message to CRT iproc\n");
-		send_console_chars(env); //CRT output, wait for ack
-		env = (msg_envelope *) receive_message();
-		if (env == NULL) {
-		   printf("Waiting for acknowledgement message from CRT\n");
-		}
-		while (env == NULL) {
-			usleep (tWait);
-			env = (msg_envelope *) receive_message();
-
-		}		
-		release_msg_env(env);
-	}
-}*/

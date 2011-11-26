@@ -90,7 +90,7 @@ void process_switch( )
     previous_process = current_process; //Setting the current process as previous process
     current_process = next_process; //Setting the current process PCB to the next process
     if( current_process->process_id != 5 || previous_process->process_id != 5)
-       printf("process_switch: Context switch between %i and %i \n", previous_process->process_id, current_process->process_id);
+       printf("process_switch: Context switch from %i to %i \n", previous_process->process_id, current_process->process_id);
     fflush(stdout);
     context_switch( previous_process->context, next_process->context ); //switch the context of 'previous' process to 'next' process
 /*
