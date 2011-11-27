@@ -81,7 +81,7 @@ void process_CCI() {
 					error = send_message(PROC_CLK, msg);
 				}*/
 				
-				else if (msg->msg_text[0] == 'c' && msg->msg_text[1] == ' ')
+				else if (msg->msg_text[0] == 'c' && msg->msg_text[1]==' ')
 				{
 					msg->msg_type = CHANGE_CLOCK; 
 					for (i =0;i<10; i++)
@@ -283,47 +283,40 @@ void process_NULL()
 }
 
 
-void wall_clock() {
-
-	//this section is only going to run once during the lifetime of the rtx
-    //char time[TIME_SIZE] = "00:00:00";
-	int time = 0; //if you comment this the wall clock does not run in a loop...
-	int nSeconds = 0;
-	int nMinutes = 0;
-	int nHours = 0;
-	int clock_status = OFF;	
-	int awake = 1;
-	int time_set = 0; //determines whether the user set the time or not - used while displaying the time
-	int command;
-	int temp; //stores return values from user APIs	
-	char command_data[MAX_COMMAND_DATA_SIZE];
+void wall_clock() 
+{		
+	int nSeconds = 0; 			//stores the number of seconds in wall clock
+	int nMinutes = 0;			//stores the number of minutes in wall clock
+	int nHours = 0;				//stores the number of hours in wall clock
+	char sHours[3]; 			//string to store number of hours entered by user to set the time
+	char sMinutes[3]; 			//string to store number of minutes entered by user to set the time
+	char sSeconds[3];			//string to store number of seconds entered by user to set the time			
+	int clock_status = OFF;		//stores whether the clock should be displayed or not
+	int time_set = 0; 			//determines whether the user set the time or not - used while displaying the time
+	int command;				//stores the command that was entered by the user
+	int error_code; 			//stores return values from user APIs		
+	int tempSec = 0;			//stores the seconds entered by the user temporarily, so that its value can be checked for illegal time
+	int tempMin = 0;			//stores the minutes entered by the user temporarily, so that its value can be checked for illegal time
+	int tempHrs = 0;			//stores the hours entered by the user temporarily, so that its value can be checked for illegal time
+		
 	msg_envelope * msg = NULL;	
-	msg_envelope * timer_msg;	
+	msg_envelope * timer_msg = NULL;	
+	
 	while(timer_msg==NULL)		
 		timer_msg = request_msg_env();		
+	
 	timer_msg->receiver_pid = IPROC_TIMER;
 	timer_msg->sender_pid = PROC_CLK;
-	request_delay(10, WALL_CLK_WAKEUPCODE, timer_msg);
-	int i =0;
-	int confirmation_sent;	
-	int clock_status2;
-	
-	//this section should run forever once all variables have been initialized
+	request_delay(10, WALL_CLK_WAKEUPCODE, timer_msg);			
+		
 	do {		
-		msg = receive_message();		 
-		//expecting messages only from the CCI at this pointu
-		
-		//parse the message text to get the command and other data out
-		
+		msg = receive_message();		 						
 		if (msg != NULL)
-		{	
-			//get the command entered by user
-			
+		{							
 			if(msg->sender_pid == IPROC_TIMER)
 			{				
 				//increment your clock		
-				printf("WALL CLOCK - incrementing time\n");fflush(stdout);
-				//time ++;							
+				printf("WALL CLOCK - incrementing time\n");fflush(stdout);										
 				nSeconds ++;
 				if (nSeconds == 60)
 				{
@@ -332,65 +325,28 @@ void wall_clock() {
 				}
 				if (nMinutes == 60)
 				{
-					nHours++;
-					nMinutes = 0;
-				}
-				
-				if (nHours == 24 && nMinutes == 60 && nSeconds == 60)
-				{
-					printf("WALL CLOCK: The rtx has been running for a day. Resetting time to zero");
-					nSeconds = nMinutes = nHours = 0;
-				}
-				
-				printf("WALL CLOCK: should the clock be displayed? clock_status2=%i\n", clock_status2);fflush(stdout);
-				
-				//display wall clock
-				//if (clock_status == ON)
-				if (clock_status2 == ON)
-				{			
-					printf("WALL CLOCK: displaying time\n");
-					//for(i =0;i<TIME_SIZE;i++)
-					/*crt_msg->msg_text[0] = time[0];
-					crt_msg->msg_text[1] = time[1];
-					crt_msg->msg_text[2] = '';
-					crt_msg->msg_text[3] = time[2];
-					crt_msg->msg_text[4] = time[3];
-					crt_msg->msg_text[5] = '';
-					crt_msg->msg_text[6] = time[4];
-					crt_msg->msg_text[7] = time[5];*/
-										
-					/*int nSeconds = time%(3600*60); 
-					int nMinutes = time/60;
-					int nHours = time/3600;
-					if (nSeconds <10)
-					{
-						msg->msg_text[0] = '0';	
-						//strcat(msg->msg_text, (char*)nSeconds);
-						//sprintf(msg->text[1], "%i", nSeconds);
-					}
+					if (nHours!=24)
+						nHours++;
 					else
 					{
-						//sSeconds = (char)nSeconds
-						//msg->text[0] = sSeconds[0];
-						//msg->text[1] = sSeconds[1];*/
-						//strcat(msg->msg_text, (char*)nSeconds);						
-						sprintf(msg->msg_text, "%i:%i:%i", nHours, nMinutes, nSeconds);						
-						strcat(msg->msg_text,"\n");
-						msg->msg_size+=2;
-						
-					//}	/**/
-					//strcat(msg->msg_text, '\0');
-					//printf("WALL CLOCK: the time right now is : %i\n", time);fflush(stdout);
-					//sprintf(msg->msg_text, "%s", sSeconds);		
-					//msg->msg_text[0] = (char)time;
-					msg->msg_type = OUTPUT_REQUEST;
-					printf("WALL CLOCK: msg text is: %s", msg->msg_text);
-					msg->msg_size = strlen(msg->msg_text);
-					printf("WALL CLOCK: the message size is : %i\n", msg->msg_size);
-					//msg->msg_size = 1;
+						nHours = 0;
+						printf("WALL CLOCK: The rtx has been running for a day. Resetting time to zero");
+					}
+					nMinutes = 0;
+				}												
+				
+				//display wall clock				
+				if (clock_status == ON)
+				{			
+					printf("WALL CLOCK: displaying time\n");										
+					sprintf(msg->msg_text, "%i:%i:%i", nHours, nMinutes, nSeconds);						
+					strcat(msg->msg_text,"\n");
+					msg->msg_size+=2;											
+					msg->msg_type = OUTPUT_REQUEST;					
+					msg->msg_size = strlen(msg->msg_text);										
 					msg->sender_pid = PROC_CLK;
 					msg->receiver_pid = IPROC_CRT;
-					temp = send_console_chars(msg); //send to the crt the updated time					
+					error_code = send_console_chars(msg); //send to the crt the updated time					
 				}
 				
 				//return the msg back to the timer as a request delay
@@ -408,72 +364,45 @@ void wall_clock() {
 				
 				switch(command)
 				{
-					case CHANGE_CLOCK: 	//set wall clock time					
-						/*time[0] = (int) msg->msg_text[0];
-						time[1] = (int) msg->msg_text[1];
-						//time[2] = (int) msg->msg_text[2];
-						time[3] = (int) msg->msg_text[3];
-						time[4] = (int) msg->msg_text[4];
-						//time[5] = (int) msg->msg_text[5];
-						time[6] = (int) msg->msg_text[6];
-						time[7] = (int) msg->msg_text[7];	*/
-						printf("changing time");fflush(stdout);
+					case CHANGE_CLOCK: 	
+						//get the wall clock time entered by the user from the message sent to wall clock by the cci											
+						sprintf(sSeconds, "%c%c", msg->msg_text[6], msg->msg_text[7]);
+						strcat(sSeconds, "/n");
+						sprintf(sMinutes, "%c%c", msg->msg_text[3], msg->msg_text[4]);						
+						strcat(sMinutes, "/n");
+						sprintf(sHours, "%c%c", msg->msg_text[0], msg->msg_text[1]);						
+						strcat(sHours, "/n");
+						
+						//update the wall clock with the entered time
+						sscanf(sHours, "%i", &tempHrs);
+						sscanf(sMinutes, "%i", &tempMin);
+						sscanf(sSeconds, "%i", &tempSec);
+						
+						//make sure the entered time is legal
+						if (tempHrs < 25 && tempMin < 60 && tempSec < 60)
+						{
+							nHours = tempHrs;
+							nMinutes = tempMin;
+							nSeconds = tempSec;
+						}
+						else
+						{
+							//don't remove this comment, it is letting the user know that an illegal time was entered
+							printf("The time you specified is illegal - please enter a legal time.\n");	
+						}							
 						time_set = 1;					
 						break;
 					case STOP_CLOCK: 	//turn wall clock display off
-						printf("turning off clock\n");fflush(stdout);
-						//clock_status =  OFF;
-						clock_status2 =  OFF;
+						printf("WALL CLOCK: turning off clock\n");fflush(stdout);						
+						clock_status =  OFF;
 						release_msg_env(msg);
 						break;
-					case SHOW_CLOCK: 	//turn wall clock display on	
-						printf("wALL CLOCK: turning on clock\n");fflush(stdout);
-						//clock_status = ON;
-						clock_status2 = ON;
+					case SHOW_CLOCK: 	//turn wall clock display on							
+						printf("WALL CLOCK: turning on clock\n");
+						clock_status = ON;
 						break;					
 				}
 			}
-		}
-		
-			
-					
-		//request a message envelope to send message to timing service
-		//what if it takes a very long time - approx 1s - to get a message? our clock will not be up to date
-		/*
-		msg = NULL;
-	
-		while(msg == NULL)
-			msg = request_msg_env();
-		
-		msg->next = NULL;
-		msg->previous = NULL;
-		msg->sender_pid = PROC_CLK;
-		msg->receiver_pid = IPROC_TIMER;
-		
-		//need to change the time delay according to implementation in the timing service
-		int code = request_delay(10, WALL_CLK_WAKEUPCODE, msg);
-		
-		if (code == FAIL)
-			printf("WALL CLOCK: could not request delay");
-		
-		awake = 0;
-		int sec = 0;
-		while(!awake)
-		{
-			msg = receive_message();
-			if (msg == NULL)		//make sure you have received the message
-				release_processor();										
-			else if(msg->sender_pid == IPROC_TIMER) //make sure you awake only if message is from timer iproc
-				awake = 1;			
-			else if(msg->msg_type!= WALL_CLK_WAKEUPCODE) //make sure the message received is from the timer process
-				release_processor();
-		}*/
-		
-		/*		
-		//since it is critical that the wall clock have a message envelope on time, don't release the envelope
-		//requested and keep it reserved*/
-		
-	}while(awake); //at this line of code the process is always awake...so it always runs
-	
-	
+		}														
+	}while(1);
 }
