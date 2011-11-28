@@ -10,7 +10,8 @@ iRTX-G19: keyboard crt rtx
 
 #link the rtx objects
 rtx: rtx.o	
-	$(CC) -g -lrt -o $(builddir)/rtx \
+	#$(CC) -g -lrt -o $(builddir)/rtx \
+	$(CC) -g -lrt -o iRTX-G19 \
 	$(builddir)/kernelAPI.o \
 	$(builddir)/rtx_main.o \
 	$(builddir)/init.o \
@@ -32,6 +33,7 @@ rtx.o:
 #link the keyboard objects
 keyboard: keyboard.o
 	$(CC) -g -lrt -o $(builddir)/keyboard $(builddir)/keyboard.o
+	#$(CC) -g -lrt -o keyboard $(builddir)/keyboard.o
 
 #build the keyboard object
 keyboard.o: 
@@ -40,6 +42,7 @@ keyboard.o:
 #link the crt objects
 crt: crt.o
 	$(CC) -g -lrt -o $(builddir)/crt $(builddir)/crt.o
+	#$(CC) -g -lrt -o crt $(builddir)/crt.o
 
 #build the crt object
 crt.o:
@@ -48,6 +51,8 @@ crt.o:
 #clean everything in the build folder
 clean:
 	rm -r -f $(builddir)/*
+	rm -r -f rtx.exe
+	rm -r -f rtx.exe.stackdump
 	
 cleanBuild:
 	rm -f build/in_buf

@@ -379,7 +379,7 @@ void wall_clock()
 						sscanf(sSeconds, "%i", &tempSec);
 						
 						//make sure the entered time is legal
-						if (tempHrs < 25 && tempMin < 60 && tempSec < 60)
+						if (tempHrs < 24 && tempMin < 60 && tempSec < 60)
 						{
 							nHours = tempHrs;
 							nMinutes = tempMin;
