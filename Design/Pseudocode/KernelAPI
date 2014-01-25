@@ -1,0 +1,143 @@
+/*terminate execution of RTX immediately – effect is immediate*/
+
+/*need a getpid() method to retrieve pid of child process from child process data structure?*/
+
+
+int terminate()
+{
+	/* determine number of children of RTX – need a data structure that has information on all the child processes of the parent – let’s call this the children data structure*/
+
+	/*we know all process IDs before hand, so run through these and kill all processes*/
+	//for (i=0; i<iTable->length; i++) //where do we store all the process ids?
+	for each process in the initialization table
+	{
+		//is killing a good option? how would we know if the process has allocated memory or not?		
+		//do we need to worry about any currently open files by the process?
+		//kill (iTable[i]->pid, SIGINT);
+		kill process
+		//would the processes allocate any memory? if yes free these
+	}
+	
+	/*release all kernel data structures instantiated during initialization*/ 
+	//these are not visible by user processes
+	//for (i=0; i<system_process_list->length; i++)
+	for each pcb on system process linked list
+	{
+		//free (system_process_list(i)); //including memory allocated in the memory structure field, and local message queue inside the PCB
+		free PCB
+	}
+	
+	free all queues (ready queue, blocked queue, susepended queue etc)
+	free message envelopes
+	
+	return code
+
+	/*TODO what happens if you don't kill processes but release their memory*/
+}
+
+//secondary
+
+int k_terminate()
+{
+	retCode = 0;
+	kill KB and CRT child processes
+	unmap memory maps for both processes
+	if (bad unmaps)
+		retCode = BAD_UNMAP;
+	close temp memory map files and unlink them (i.e delete them)
+	if (bad file closes)
+		retCode = ERROR_BAD_FILE_CLOSE;
+	kill rtx process and return control to Linux
+	
+	return retCode;
+}
+
+int k_change_priority(int new_priority, int target_process_id)
+{
+	int retCode = INVALID_PID_ERROR or INVALID_PRIORITY_ERROR
+	if (target_process_id and new_priority are valid)
+	{
+		PCB * apcb = getPCBbyPID (target_process_id)
+		apcb -> priority = new_priority
+		invoke scheduler so that process is enqueued onto appropriate queue		
+	}
+	print ("Invalid process id or priority level")
+	return retCode;
+}
+
+int k_request_delay( int time_delay, int wakeup_code, MsgEnv * message_envelope )
+{
+	if (time_delay, wakeup_code and message_envelope != NULL)
+	{
+		message_envelope -> n_clock_ticks = time_delay; // popoulate num of clock ticks desired inside message
+		message_envelope -> message_text = wakeup_code; // write message with code timing service will reply with after delay is over
+		int retCode = K_send_message(TSERVICE_ID, message_envelope);
+		return retCode
+	}
+}
+
+int k_send_console_chars(MsgEnv * message_envelope )
+{
+	int retCode = 0;
+	if (message_envelope != NULL)
+	{		
+		retCode = k_send_message(PROC_CRT_ID, message_envelope);
+		atomic(on)
+		crt_handler();
+		atomic(off);
+		
+		//if this line reached it means message has been displayed on screen - return envelope as acknowledgement
+		do a receive to get acknolwedgement message from crt_handler
+		message_envelope -> message_type = DISPLAY_ACK;
+		dest_pid = message_envelope-> source_pid;
+		retCode = k_send_message(dest_pid, message_envelope);	//return msg to invoking proc
+	}
+	else 
+		retCode = ERROR_INVALID_MID;
+		
+	return retCode;
+}
+
+//run by i-process handling the signal from UART receiver
+int k_get_console_chars(MsgEnv * message_envelope )
+{
+	int retCode = 0;
+	if (message_envelope != NULL)
+	{
+		retCode = k_send_message(PROC_KB_ID, message_envelope);
+		atomic(on);
+		kb_handler(); //make sure kb process does not also send a signal to iproc
+		atomic(off);	
+		
+		do a receive to get acknowledgement msg from kb_handler
+		message_envelope -> msg_type = CONSOLE_INPUT;
+		dest_pid = message_envelope-> source_pid;	
+		retCode = k_send_message(dest_pid, message_envelope);	//return msg to invoking proc
+		return the message to the invoking process
+	}
+	else
+		retCode = ERROR_INVALID_MID;
+	return return_code;
+}
+
+int k_get_trace_buffers( MsgEnv * message_envelope)
+{
+	int retCode = 0;
+	if (message_envelope != NULL)
+	{
+		//get all 16 elements of send and receive trace buffers and copy them into the message envelope
+		get the contents of the 2 trace buffers and store them in the message text
+		message_envelope -> message_text = get_buffer_contents (send_trace_buffer_address); // address is known
+		message_envelope -> message_text += get_buffer_contents (receive_trace_buffer_address); // // address is known
+		//need special message struct for this?
+		
+		//return the envelope to the invoking process
+		int dest_pid = message_envelope -> source_pid;
+		int return_code = send_message (dest_pid, message_envelope);
+		return return_code;
+	}
+	else
+		retCode = ERROR_INVALID_MID;
+		
+	return retCode;
+}
